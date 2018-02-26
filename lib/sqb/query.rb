@@ -172,7 +172,7 @@ module SQB
       direction = direction ? direction.to_s.upcase : 'ASC'
 
       unless VALID_ORDERS.include?(direction)
-        raise Error, "Invalid order direction #{direction}"
+        raise InvalidOrderDirectionError, "Invalid order direction #{direction}"
       end
 
       with_table_and_column(column) do |table, column|
@@ -300,7 +300,7 @@ module SQB
               op = operator == :in ? "IN" : "NOT IN"
               sql << "#{key} #{op} (#{escaped_values})"
             else
-              raise Error, "Invalid operator '#{operator}'"
+              raise InvalidOperatorError, "Invalid operator '#{operator}'"
             end
           end
           sql.empty? ? "1=0" : sql.join(joiner)

@@ -88,7 +88,7 @@ describe SQB::Query do
       end
 
       it "should raise an error when an invalid operator is provided" do
-        expect { query.where(:title => {:something => "Hello"})}.to raise_error(SQB::Error, /invalid operator/i)
+        expect { query.where(:title => {:something => "Hello"})}.to raise_error(SQB::InvalidOperatorError)
       end
     end
 

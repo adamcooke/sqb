@@ -4,4 +4,10 @@ module SQB
 
   class EscapeBlockMissingError < Error
   end
+
+  class InvalidOrderDirectionError < Error
+  end
+
+  class InvalidOperatorError < Error
+  end
 end

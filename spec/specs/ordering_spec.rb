@@ -22,7 +22,7 @@ describe SQB::Query do
     end
 
     it "shold raise an error for invalid directions" do
-      expect { query.order(:title, "potato") }.to raise_error(SQB::Error, /invalid order direction/i)
+      expect { query.order(:title, "potato") }.to raise_error(SQB::InvalidOrderDirectionError)
     end
 
     it "should allow multiple orders to be added" do
