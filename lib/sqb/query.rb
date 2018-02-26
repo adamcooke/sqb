@@ -3,9 +3,11 @@ require 'sqb/error'
 module SQB
   class Query
 
+    attr_reader :prepared_arguments
+
     VALID_ORDERS = ['ASC', 'DESC']
 
-    def initialize(table_name, &escape_block)
+    def initialize(table_name, options = {}, &escape_block)
       @table_name = table_name
       @columns = []
       @joins = []
@@ -17,7 +19,14 @@ module SQB
       @offset = nil
       @distinct = false
       @where_within_or = []
-      @escape_block = escape_block
+      @options = options
+      @prepared_arguments = []
+
+      if @options[:prepared] == false && escape_block.nil?
+        raise Error, "An escape block must be provided if prepared statements are disabled."
+      else
+        @escape_block = escape_block
+      end
     end
 
     # Generate the full SQL query for this query.
@@ -133,6 +142,7 @@ module SQB
         @where << "(#{@where_within_or_sql.flatten.join(' OR ')})"
         @where_within_or_sql = nil
       end
+      self
     end
 
     # Limit the number of records return
@@ -313,19 +323,20 @@ module SQB
 
     def value_escape(value)
       if value == true
-        '1'
+        1
       elsif value == false
-        '0'
+        0
       elsif value.nil?
         'NULL'
       elsif value.is_a?(Integer)
         value.to_i
       else
-        if value.to_s.length == 0
-          'NULL'
-        else
+        if @options[:prepared] == false
           escaped_value = @escape_block ? @escape_block.call(value.to_s) : value.to_s
           "'" + escaped_value + "'"
+        else
+          @prepared_arguments << value.to_s
+          '?'
         end
       end
     end

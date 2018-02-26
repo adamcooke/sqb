@@ -8,12 +8,12 @@ describe SQB::Query do
 
     it "should always work on the default table" do
       query.where(:title => 'Hello')
-      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = 'Hello')"
+      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = ?)"
     end
 
     it "should be able to query on sub-tables" do
       query.where({:comments => :author} => 'Hello')
-      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`comments`.`author` = 'Hello')"
+      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`comments`.`author` = ?)"
     end
 
     it "should handle searching with array values as numbers" do
@@ -23,7 +23,7 @@ describe SQB::Query do
 
     it "should handle searching with array values as strings" do
       query.where(:author_id => ['Adam', 'Dave', 'John'])
-      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author_id` IN ('Adam', 'Dave', 'John'))"
+      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author_id` IN (?, ?, ?))"
     end
 
     it "should handle searching for nils" do
@@ -39,7 +39,7 @@ describe SQB::Query do
     context "operators" do
       it "should handle equal" do
         query.where(:title => {:equal => 'Hello'})
-        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = 'Hello')"
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = ?)"
       end
 
       it "should handle equal when null" do
@@ -49,7 +49,7 @@ describe SQB::Query do
 
       it "should handle not equal to" do
         query.where(:title => {:not_equal => 'Hello'})
-        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` != 'Hello')"
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` != ?)"
       end
 
       it "should handle not equal to when null" do
@@ -98,23 +98,23 @@ describe SQB::Query do
           query.where(:title => "Hello")
           query.where(:title => "World")
         end
-        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE ((`posts`.`title` = 'Hello') OR (`posts`.`title` = 'World'))"
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
       end
     end
 
     context "escaping" do
       it "should escape column names" do
         query.where("column`name" => 'Hello')
-        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`column``name` = 'Hello')"
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`column``name` = ?)"
       end
 
       it "should escape table names" do
         query.where({"table`name" => "title"} => 'Hello')
-        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`table``name`.`title` = 'Hello')"
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`table``name`.`title` = ?)"
       end
 
       context "values" do
-        subject(:query) { SQB::Query.new(:posts) { |v| v.to_s.gsub('@', '@@@') } }
+        subject(:query) { SQB::Query.new(:posts, :prepared => false) { |v| v.to_s.gsub('@', '@@@') } }
 
         it "should should always escape values" do
           query.where(:title => 'Hello@World')

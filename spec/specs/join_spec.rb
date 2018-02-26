@@ -19,7 +19,7 @@ describe SQB::Query do
 
     it "should allow querying" do
       query.join(:comments, :post_id, :where => {:content => "Hello"})
-      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` WHERE (`comments_0`.`content` = 'Hello')"
+      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` WHERE (`comments_0`.`content` = ?)"
     end
 
     it "should allow field selection" do

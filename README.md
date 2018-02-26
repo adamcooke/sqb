@@ -13,10 +13,11 @@ gem 'sqb'
 ```ruby
 # Create your query and provide a block that can be used to escape string values
 # that are provided.
-query = SQB::Query.new(:posts) { |v| mysql.escape(v) }
+query = SQB::Query.new(:posts)
 
-# Generate a query
+# Generate a query and get a list of prepared arguments
 query.to_sql
+query.prepared_arguments
 
 # Add some filtering
 query.where(:title => "Hello world!")
