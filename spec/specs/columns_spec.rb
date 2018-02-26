@@ -22,6 +22,21 @@ describe SQB::Query do
       expect(query.to_sql).to eq 'SELECT DISTINCT `posts`.`*` FROM `posts`'
     end
 
+    it "should allow an alias" do
+      query.column(:title, :as => :title2)
+      expect(query.to_sql).to eq 'SELECT `posts`.`title` AS `title2` FROM `posts`'
+    end
+
+    it "should allow a function" do
+      query.column(:id, :function => 'count', :as => 'count')
+      expect(query.to_sql).to eq 'SELECT COUNT( `posts`.`id` ) AS `count` FROM `posts`'
+    end
+
+    it "should strip invalid characters from functions" do
+      query.column(:id, :function => 'cou!--!nt')
+      expect(query.to_sql).to eq 'SELECT COUNT( `posts`.`id` ) FROM `posts`'
+    end
+
     context "escaping" do
       it "should escape column names" do
         query.column("title`here")

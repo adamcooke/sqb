@@ -73,11 +73,11 @@ module SQB
     def column(column, options = {})
       with_table_and_column(column) do |table, column|
         @columns << [].tap do |query|
-          if options[:method]
-            query << "#{options[:method]}("
+          if options[:function]
+            query << "#{escape_function(options[:function])}("
           end
           query << column_tuple(table, column)
-          if options[:method]
+          if options[:function]
             query << ")"
           end
           if options[:as]
@@ -305,6 +305,10 @@ module SQB
 
     def escape(name)
       "`#{name.to_s.gsub('`', '``')}`"
+    end
+
+    def escape_function(name)
+      name.to_s.gsub(/[^a-z0-9\_]/i, '').upcase
     end
 
     def value_escape(value)
