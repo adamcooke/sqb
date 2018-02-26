@@ -23,7 +23,7 @@ module SQB
       @prepared_arguments = []
 
       if @options[:prepared] == false && escape_block.nil?
-        raise Error, "An escape block must be provided if prepared statements are disabled."
+        raise EscapeBlockMissingError, "An escape block must be provided if prepared statements are disabled."
       else
         @escape_block = escape_block
       end
