@@ -318,11 +318,19 @@ module SQB
     end
 
     def escape(name)
-      "`#{name.to_s.gsub('`', '``')}`"
+      if name.is_a?(SafeString)
+        name
+      else
+        "`#{name.to_s.gsub('`', '``')}`"
+      end
     end
 
     def escape_function(name)
-      name.to_s.gsub(/[^a-z0-9\_]/i, '').upcase
+      if name.is_a?(SafeString)
+        name
+      else
+        name.to_s.gsub(/[^a-z0-9\_]/i, '').upcase
+      end
     end
 
     def value_escape(value)
@@ -349,12 +357,18 @@ module SQB
       if input.is_a?(Hash)
         input.each { |table, column| block.call(table, column) }
       else
-        block.call(@table_name, input.to_sym)
+        block.call(@table_name, input)
       end
     end
 
     def column_tuple(table, column)
-      [escape(table), escape(column)].join('.')
+      if column.is_a?(SafeString)
+        # If a safe string is provided as a column name, we'll
+        # always use this even if a table name is provided too.
+        column
+      else
+        [escape(table), escape(column)].join('.')
+      end
     end
 
   end

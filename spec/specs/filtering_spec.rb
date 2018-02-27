@@ -36,6 +36,11 @@ describe SQB::Query do
       expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`views` > 10 AND `posts`.`views` < 100)"
     end
 
+    it "should allow safe values to be passed in" do
+      query.where(SQB.safe('IF(LENGTH(field2) > 0, field2, field1)') => "Hello")
+      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (IF(LENGTH(field2) > 0, field2, field1) = ?)"
+    end
+
     context "operators" do
       it "should handle equal" do
         query.where(:title => {:equal => 'Hello'})

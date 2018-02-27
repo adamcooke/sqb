@@ -37,6 +37,11 @@ describe SQB::Query do
       expect(query.to_sql).to eq 'SELECT COUNT( `posts`.`id` ) FROM `posts`'
     end
 
+    it "should allow safe values to be passed in" do
+      query.column(SQB.safe('BLAH(example)'))
+      expect(query.to_sql).to eq "SELECT BLAH(example) FROM `posts`"
+    end
+
     context "escaping" do
       it "should escape column names" do
         query.column("title`here")
