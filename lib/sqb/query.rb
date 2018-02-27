@@ -37,7 +37,7 @@ module SQB
         query << "SELECT"
         query << "DISTINCT" if @distinct
         if @columns.empty?
-          query << column_tuple(@table_name, '*')
+          query << escape_and_join(@table_name, '*')
         else
           query << @columns.join(', ')
         end
@@ -85,7 +85,7 @@ module SQB
           if options[:function]
             query << "#{escape_function(options[:function])}("
           end
-          query << column_tuple(table, column)
+          query << escape_and_join(table, column)
           if options[:function]
             query << ")"
           end
@@ -176,7 +176,7 @@ module SQB
       end
 
       with_table_and_column(column) do |table, column|
-        @orders << [column_tuple(table, column), direction].join(' ')
+        @orders << [escape_and_join(table, column), direction].join(' ')
       end
 
       self
@@ -199,7 +199,7 @@ module SQB
     # @return [Query]
     def group_by(column)
       with_table_and_column(column) do |table, column|
-        @groups << column_tuple(table, column)
+        @groups << escape_and_join(table, column)
       end
       self
     end
@@ -227,9 +227,9 @@ module SQB
         query << "AS"
         query << escape(join_name)
         query << "ON"
-        query << column_tuple(@table_name, 'id')
+        query << escape_and_join(@table_name, 'id')
         query << "="
-        query << column_tuple(join_name, foreign_key)
+        query << escape_and_join(join_name, foreign_key)
       end.join(' ')
 
       if options[:where]
@@ -266,7 +266,7 @@ module SQB
           key = key.first[1]
         end
 
-        key = column_tuple(table, key)
+        key = escape_and_join(table, key)
 
         if value.is_a?(Array)
           escaped_values = value.map { |v| value_escape(v) }.join(', ')
@@ -361,13 +361,13 @@ module SQB
       end
     end
 
-    def column_tuple(table, column)
-      if column.is_a?(SafeString)
+    def escape_and_join(*parts)
+      if parts.last.is_a?(SafeString)
         # If a safe string is provided as a column name, we'll
         # always use this even if a table name is provided too.
-        column
+        parts.last
       else
-        [escape(table), escape(column)].join('.')
+        parts.map { |part| escape(part) }.join('.')
       end
     end
 
