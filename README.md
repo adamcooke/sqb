@@ -1,5 +1,7 @@
 # SQB (SQL Query Builder)
 
+[![Build Status](https://travis-ci.org/adamcooke/sqb.svg?branch=master)](https://travis-ci.org/adamcooke/sqb)
+
 This is a gem that allows you to construct SQL queries from a simple Ruby DSL. There are lots of gems like this around but I haven't yet found one that I really enjoy using that supports things like ORs or various different operators nicely. This isn't a perfect solution but is very handy for quickly generating queries.
 
 ## Installation
