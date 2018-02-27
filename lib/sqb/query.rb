@@ -299,6 +299,10 @@ module SQB
               escaped_values = value.map { |v| value_escape(v) }.join(', ')
               op = operator == :in ? "IN" : "NOT IN"
               sql << "#{key} #{op} (#{escaped_values})"
+            when :like
+              sql << "#{key} LIKE #{value_escape(value)}"
+            when :not_like
+              sql << "#{key} NOT LIKE #{value_escape(value)}"
             else
               raise InvalidOperatorError, "Invalid operator '#{operator}'"
             end

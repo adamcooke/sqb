@@ -87,6 +87,16 @@ describe SQB::Query do
         expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author_id` NOT IN (1, 2, 3))"
       end
 
+      it "should handle like" do
+        query.where(:author => {:like => '%Adam'})
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author` LIKE ?)"
+      end
+
+      it "should handle not like" do
+        query.where(:author => {:not_like => '%Adam'})
+        expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author` NOT LIKE ?)"
+      end
+
       it "should raise an error when an invalid operator is provided" do
         expect { query.where(:title => {:something => "Hello"})}.to raise_error(SQB::InvalidOperatorError)
       end
