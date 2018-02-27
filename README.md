@@ -69,3 +69,11 @@ query.offset(20)
 # Specify that you wish to receive distinct rows
 query.distinct
 ```
+
+### Specifying a database
+
+You can specify the name of a database that you wish to query. By default, no database name will be included in the query.
+
+```ruby
+query = SQB::Query.new(:posts, :database_name => :my_blog)
+```

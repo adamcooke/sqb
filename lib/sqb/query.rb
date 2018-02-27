@@ -42,7 +42,7 @@ module SQB
           query << @columns.join(', ')
         end
         query << "FROM"
-        query << escape(@table_name)
+        query << escape_and_join(@options[:database_name], @table_name)
 
         unless @joins.empty?
           query << @joins.join(' ')
@@ -223,7 +223,7 @@ module SQB
 
       @joins << [].tap do |query|
         query << "INNER JOIN"
-        query << escape(table_name)
+        query << escape_and_join(@options[:database_name], table_name)
         query << "AS"
         query << escape(join_name)
         query << "ON"
@@ -367,7 +367,7 @@ module SQB
         # always use this even if a table name is provided too.
         parts.last
       else
-        parts.map { |part| escape(part) }.join('.')
+        parts.compact.map { |part| escape(part) }.join('.')
       end
     end
 
