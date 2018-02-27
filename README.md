@@ -10,65 +10,145 @@ gem 'sqb'
 
 ## Usage
 
-```ruby
-# Create your query and provide a block that can be used to escape string values
-# that are provided.
-query = SQB::Query.new(:posts)
+To get started just create yourself a `SQB::Query` object and provide the base table name.
 
-# Generate a query and get a list of prepared arguments
+```ruby
+query = SQB::Query.new(:posts)
+```
+
+When you've done all the operations on the query that you wish to do (see below) you can extract the finished SQL query and prepared arguments for passing to a database client.
+
+```ruby
+# Return the SQL query itself
 query.to_sql
+
+# Return any arguments needed for the query
 query.prepared_arguments
 
-# Add some filtering
+# For example with the MySQL2 client you might do this...
+statement = mysql.prepare(query.to_sql)
+statement.execute(*query.prepared_arguments)
+```
+
+### Filtering
+
+The most common thing you'll want to do is filter the data returned which means using `WHERE`. You can do any of the following to filter the data returned.
+
+```ruby
+# The most basic equality operators
 query.where(:title => "Hello world!")
+query.where(:title => {:equal => "Hello world!"})
 query.where(:title => {:not_equal => "Hello world!"})
-query.where(:title => {:greater_than => 10, less_than => 1000})
 
-# You can do filtering with ORs
+# Greater than or less than
+query.where(:comments_count => {:greater_than => 100})
+query.where(:comments_count => {:less_than => 1})
+query.where(:comments_count => {:greater_than_or_equal_to => 100})
+query.where(:comments_count => {:less_than_or_equal_to => 1})
+
+# Like/Not like
+query.where(:body => {:like => "Hello world!"})
+query.where(:body => {:not_like => "Hello world!"})
+
+# In/not in an array
+query.where(:author_id => [1,2,3,4])
+query.where(:author_id => {:in => [1,2,3,4]})
+query.where(:author_id => {:not_in => [1,2,3,4]})
+
+# Nulls
+query.where(:markdown => nil)
+query.where(:markdown => {:not_equal => nil})
+```
+
+By default all filtering operations will be joined with ANDs. You can use OR if needed.
+
+```ruby
 query.or do
-  query.where(:title => "It might be this")
-  query.where(:title => "or it might be this")
+  query.where(:author => "Sarah Smith")
+  query.where(:author => "John Jones")
 end
+```
 
-# You can choose which columns will be returned
+### Selecting columns
+
+By default, all the columns on your main table will be selected with a `*` however you may not wish to get them all or you may wish to use functions to get other data.
+
+```ruby
 query.column(:title)
-query.column(:another_column, :as => 'another_name')
-query.column(:id, :function => 'COUNT')
+query.column(:id, :function => 'COUNT', :as => 'count')
 
-# You can add ordering
+# If you have already added columns and wish to replace them all with a new one
+query.column!(:other_column)
+```
+
+### Specifying orders
+
+You can add fields that you wish to order by as either ascending or decending.
+
+```ruby
 query.order(:posted_at)
 query.order(:posted_at, :asc)
 query.order(:posted_at, :desc)
 
-# You can remove all previously added ordering
+# If you have already added some orders and wish to replace them with a new field
+query.order!(:last_comment_posted_at, :desc)
+
+# To remove all ordering
 query.no_order!
+```
 
-# You can remove all previous added ordering and add the current
-query.order!(:posted_at)
+### Limiting the returned records
 
-# You can join to other tables
+You can specify limits and offsets easily
+
+```ruby
+query.limit(30)
+query.offset(120)
+```
+
+### Joining with other tables
+
+To join with other tables you can do so easily with the `join` methods.
+
+```ruby
 query.join(:comments, :post_id)
+query.join(:comments, :post_id, :name => :comments)
+```
 
-# You can add conditions to the joins
-query.join(:comments, :post_id, :where => {:author_id => [1]})
+By default, this will join with the table but won't return any data. You'll likely want to add some conditions and/or some columns to return.
 
-# And you can specify which columns to return from the join
-query.join(:comments, :post_id, :columns => [:content, :author_id])
+```ruby
+query.join(:comments, :post_id, :columns => [:content])
+query.join(:comments, :post_id, :where => {:spam => true})
 
-# Don't forget, once you've joined you can use their data in other methods
-query.column({:comments => :id}, :function => 'COUNT', :as => :comments_count)
-query.where({:comments => :author_id} => [1,2,3,4])
+# You can also use the existing where and column methods to add joins to these tables
+query.column({:comments => :spam})
+query.where({:comments => :spam} => {:not_equal => true})
 
-# You can group
+# Unless a name is provided with the join, you'll be able to access the join as
+# [table_name]_0 (where 0 is an index for the number of joins for that table
+# starting with 0).
+```
+
+### Grouping
+
+You can, of course, group your data too
+
+```ruby
 query.group_by(:author_id)
+query.column(:author_id)
+query.column(:count, :function => 'COUNT', :as => 'count')
+```
 
-# You can limit and offset too
-query.limit(10)
-query.offset(20)
+### Distinct
 
-# Specify that you wish to receive distinct rows
+To only return distinct rows for your dataset:
+
+```ruby
 query.distinct
 ```
+
+## Other options
 
 ### Specifying a database
 
@@ -76,4 +156,23 @@ You can specify the name of a database that you wish to query. By default, no da
 
 ```ruby
 query = SQB::Query.new(:posts, :database_name => :my_blog)
+```
+
+### Prepared statements
+
+As you'll have seen, by default, SQB returns queries designed to be used as prepared statements. If you'd rather not do this, you can but you'll need to provide a method for escaping data.
+
+```ruby
+query = SQB::Query.new(:posts, :prepared => false) { |value| mysql.escape(value) }
+query.to_sql
+```
+
+### Inserting arbitary strings
+
+There are occasions where you need to break free from constraints. You can do that by passing strings through the `SQB.safe(string)` method. This will avoid any escaping or clever magic by SQB and the string provided will simply be inserted in the query as appropriate.
+
+```ruby
+query.column(SQB.safe('SUM(CEILING(duration / 60))'))
+# or
+query.where(SQB.safe('IF(LENGTH(excerpt) > 0, excerpt, description)') => {:equal => "Llamas!"})
 ```
