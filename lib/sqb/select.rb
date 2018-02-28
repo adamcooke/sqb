@@ -1,20 +1,24 @@
 require 'sqb/base'
+require 'sqb/distinct'
 require 'sqb/columns'
 require 'sqb/filtering'
 require 'sqb/joins'
 require 'sqb/ordering'
 require 'sqb/grouping'
 require 'sqb/limiting'
+require 'sqb/offsetting'
 
 module SQB
   class Select < Base
 
+    include SQB::Distinct
     include SQB::Columns
     include SQB::Filtering
     include SQB::Joins
     include SQB::Ordering
     include SQB::Grouping
     include SQB::Limiting
+    include SQB::Offsetting
 
     def to_sql
       [].tap do |query|

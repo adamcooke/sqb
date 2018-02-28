@@ -160,6 +160,17 @@ query.set(:title => 'Hello world!')
 query.where(:id => 10)
 ```
 
+## Deleting data
+
+SQB can write you some lovely DELETE queries too. You can use `where`, `limit` and `order` to limit which records are deleted.
+
+```ruby
+query = SQB::Delete.new(:posts)
+query.where(:id => 10)
+query.limit(10)
+query.order(:id => :desc)
+```
+
 ## Other options
 
 ### Specifying a database

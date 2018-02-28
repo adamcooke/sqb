@@ -10,19 +10,5 @@ module SQB
       self
     end
 
-    # Set the offset
-    #
-    # @param number [Integer]
-    # @return [Query]
-    def offset(number)
-      @offset = number&.to_i
-      self
-    end
-
-    def distinct
-      @distinct = true
-      self
-    end
-
   end
 end
