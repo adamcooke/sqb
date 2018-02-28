@@ -1,32 +1,29 @@
 require 'sqb/error'
+require 'sqb/escaping'
+require 'sqb/columns'
+require 'sqb/filtering'
+require 'sqb/joins'
+require 'sqb/ordering'
+require 'sqb/grouping'
+require 'sqb/limiting'
 
 module SQB
   class Query
 
+    include SQB::Escaping
+    include SQB::Columns
+    include SQB::Filtering
+    include SQB::Joins
+    include SQB::Ordering
+    include SQB::Grouping
+    include SQB::Limiting
+
     attr_reader :prepared_arguments
 
-    VALID_ORDERS = ['ASC', 'DESC']
-
-    def initialize(table_name, options = {}, &escape_block)
+    def initialize(table_name, options = {})
       @table_name = table_name
-      @columns = []
-      @joins = []
-      @joins_name_mapping = {}
-      @where = []
-      @orders = []
-      @groups = []
-      @limit = nil
-      @offset = nil
-      @distinct = false
-      @where_within_or = []
       @options = options
       @prepared_arguments = []
-
-      if @options[:prepared] == false && escape_block.nil?
-        raise EscapeBlockMissingError, "An escape block must be provided if prepared statements are disabled."
-      else
-        @escape_block = escape_block
-      end
     end
 
     # Generate the full SQL query for this query.
@@ -36,29 +33,30 @@ module SQB
       [].tap do |query|
         query << "SELECT"
         query << "DISTINCT" if @distinct
-        if @columns.empty?
+        if @columns.nil? || @columns.empty?
           query << escape_and_join(@table_name, '*')
         else
           query << @columns.join(', ')
         end
+
         query << "FROM"
         query << escape_and_join(@options[:database_name], @table_name)
 
-        unless @joins.empty?
+        if @joins && !@joins.empty?
           query << @joins.join(' ')
         end
 
-        unless @where.empty?
+        if @where && !@where.empty?
           query << "WHERE"
           query << @where.join(' AND ')
         end
 
-        unless @groups.empty?
+        if @groups && !@groups.empty?
           query << "GROUP BY"
           query << @groups.join(', ')
         end
 
-        unless @orders.empty?
+        if @orders && !@orders.empty?
           query << "ORDER BY"
           query << @orders.join(', ')
         end
@@ -71,304 +69,6 @@ module SQB
           query << "OFFSET #{@offset.to_i}"
         end
       end.join(' ')
-    end
-
-    # Add a column to the query
-    #
-    # @param column [String, Symbol, Hash] the column name (or a hash with table & column name)
-    # @option options [String] :function a function to wrap around the column
-    # @options options [String] :as the name to return this column as
-    # @return [Query] returns the query
-    def column(column, options = {})
-      with_table_and_column(column) do |table, column|
-        @columns << [].tap do |query|
-          if options[:function]
-            query << "#{escape_function(options[:function])}("
-          end
-          query << escape_and_join(table, column)
-          if options[:function]
-            query << ")"
-          end
-          if options[:as]
-            query << "AS"
-            query << escape(options[:as])
-          end
-        end.join(' ')
-      end
-      self
-    end
-
-    # Replace all existing columns with the given column
-    def column!(*args)
-      @columns = []
-      column(*args)
-    end
-
-    # Add a condition to the query by providing a hash of keys and values.
-    #
-    # @param hash [Hash]
-    # @return [Query]
-    def where(hash)
-      if @where_within_or.last
-        @where_within_or.last << hash
-      else
-        @where << hash_to_sql(hash, @table_name)
-      end
-      self
-    end
-
-    # Set that all conditions added in this block should be joined using OR
-    # rather than AND.
-    def or(&block)
-      # Start by making an array within the OR block for this calling
-      @where_within_or << []
-      # Execute the block. All queries to 'where' will be added to the last
-      # array in the chain (created above)
-      block.call
-    ensure
-      # Start work on a full array of SQL fragments for all OR queries
-      @where_within_or_sql ||= []
-      # After each OR call, store up the SQL fragment for all where queries
-      # executed within the block.
-      if w = @where_within_or.pop
-        @where_within_or_sql << w.map do |w|
-          hash_to_sql(w, @table_name)
-        end.join(' OR ')
-      end
-
-      # When there are no fragments in the chain left, add it to the main
-      # where chain for the query.
-      if @where_within_or.empty?
-        @where << "(#{@where_within_or_sql.flatten.join(' OR ')})"
-        @where_within_or_sql = nil
-      end
-      self
-    end
-
-    # Limit the number of records return
-    #
-    # @param number [Integer]
-    # @return [Query]
-    def limit(number)
-      @limit = number&.to_i
-      self
-    end
-
-    # Set the offset
-    #
-    # @param number [Integer]
-    # @return [Query]
-    def offset(number)
-      @offset = number&.to_i
-      self
-    end
-
-    # Add an order column
-    #
-    # @param column [String, Symbol, Hash]
-    # @param direction [String] 'ASC' or 'DESC' (default 'ASC')
-    # @return [Query]
-    def order(column, direction = nil)
-      direction = direction ? direction.to_s.upcase : 'ASC'
-
-      unless VALID_ORDERS.include?(direction)
-        raise InvalidOrderDirectionError, "Invalid order direction #{direction}"
-      end
-
-      with_table_and_column(column) do |table, column|
-        @orders << [escape_and_join(table, column), direction].join(' ')
-      end
-
-      self
-    end
-
-    # Add an order replacing all previous ones
-    def order!(*args)
-      @orders = []
-      order(*args)
-    end
-
-    # Remove all ordering for this query
-    def no_order!
-      @orders = []
-    end
-
-    # Add a grouping
-    #
-    # @param column [String, Symbol, Hash]
-    # @return [Query]
-    def group_by(column)
-      with_table_and_column(column) do |table, column|
-        @groups << escape_and_join(table, column)
-      end
-      self
-    end
-
-    # Add a join
-    #
-    # @param table_name [String, Symbol]
-    # @param foreign_key [String, Symbol]
-    # @option options [Hash] :where
-    # @option options [Array] :select
-    # @return [Query]
-    def join(table_name, foreign_key, options = {})
-
-      if options[:name]
-        join_name = options[:name]
-      else
-        @joins_name_mapping[table_name] ||= 0
-        join_name= "#{table_name}_#{@joins_name_mapping[table_name]}"
-        @joins_name_mapping[table_name] += 1
-      end
-
-      @joins << [].tap do |query|
-        query << "INNER JOIN"
-        query << escape_and_join(@options[:database_name], table_name)
-        query << "AS"
-        query << escape(join_name)
-        query << "ON"
-        query << escape_and_join(@table_name, 'id')
-        query << "="
-        query << escape_and_join(join_name, foreign_key)
-      end.join(' ')
-
-      if options[:where]
-        join_where = options[:where].each_with_object({}) do |(column, value), hash|
-          hash[{join_name => column}] = value
-        end
-        where(join_where)
-      end
-
-      if columns = options[:columns]
-        for field in columns
-          column({join_name => field}, :as => "#{join_name}_#{field}")
-        end
-      end
-
-      if g = options[:group_by]
-        group_by(join_name => g.is_a?(Symbol) ? g : :id)
-      end
-
-      self
-    end
-
-    def distinct
-      @distinct = true
-      self
-    end
-
-    private
-
-    def hash_to_sql(hash, table, joiner = ' AND ')
-      sql = hash.map do |key, value|
-        if key.is_a?(Hash)
-          table = key.first[0]
-          key = key.first[1]
-        end
-
-        key = escape_and_join(table, key)
-
-        if value.is_a?(Array)
-          escaped_values = value.map { |v| value_escape(v) }.join(', ')
-          "#{key} IN (#{escaped_values})"
-        elsif value.is_a?(Hash)
-          sql = []
-          value.each do |operator, value|
-            case operator
-            when :not_equal
-              if value.nil?
-                sql << "#{key} IS NOT NULL"
-              else
-                sql << "#{key} != #{value_escape(value)}"
-              end
-            when :equal
-              if value.nil?
-                sql << "#{key} IS NULL"
-              else
-                sql << "#{key} = #{value_escape(value)}"
-              end
-            when :less_than
-              sql << "#{key} < #{value_escape(value)}"
-            when :greater_than
-              sql << "#{key} > #{value_escape(value)}"
-            when :less_than_or_equal_to
-              sql << "#{key} <= #{value_escape(value)}"
-            when :greater_than_or_equal_to
-              sql << "#{key} >= #{value_escape(value)}"
-            when :in, :not_in
-              escaped_values = value.map { |v| value_escape(v) }.join(', ')
-              op = operator == :in ? "IN" : "NOT IN"
-              sql << "#{key} #{op} (#{escaped_values})"
-            when :like
-              sql << "#{key} LIKE #{value_escape(value)}"
-            when :not_like
-              sql << "#{key} NOT LIKE #{value_escape(value)}"
-            else
-              raise InvalidOperatorError, "Invalid operator '#{operator}'"
-            end
-          end
-          sql.empty? ? "1=0" : sql.join(joiner)
-        elsif value == nil
-          "#{key} IS NULL"
-        else
-          "#{key} = #{value_escape(value)}"
-        end
-      end.join(joiner)
-      "(#{sql})"
-    end
-
-    def escape(name)
-      if name.is_a?(SafeString)
-        name
-      else
-        "`#{name.to_s.gsub('`', '``')}`"
-      end
-    end
-
-    def escape_function(name)
-      if name.is_a?(SafeString)
-        name
-      else
-        name.to_s.gsub(/[^a-z0-9\_]/i, '').upcase
-      end
-    end
-
-    def value_escape(value)
-      if value == true
-        1
-      elsif value == false
-        0
-      elsif value.nil?
-        'NULL'
-      elsif value.is_a?(Integer)
-        value.to_i
-      else
-        if @options[:prepared] == false
-          escaped_value = @escape_block ? @escape_block.call(value.to_s) : value.to_s
-          "'" + escaped_value + "'"
-        else
-          @prepared_arguments << value.to_s
-          '?'
-        end
-      end
-    end
-
-    def with_table_and_column(input, &block)
-      if input.is_a?(Hash)
-        input.each { |table, column| block.call(table, column) }
-      else
-        block.call(@table_name, input)
-      end
-    end
-
-    def escape_and_join(*parts)
-      if parts.last.is_a?(SafeString)
-        # If a safe string is provided as a column name, we'll
-        # always use this even if a table name is provided too.
-        parts.last
-      else
-        parts.compact.map { |part| escape(part) }.join('.')
-      end
     end
 
   end

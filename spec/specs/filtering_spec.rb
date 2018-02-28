@@ -128,60 +128,6 @@ describe SQB::Query do
         expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`table``name`.`title` = ?)"
       end
 
-      context "values" do
-        subject(:query) { SQB::Query.new(:posts, :prepared => false) { |v| v.to_s.gsub('@', '@@@') } }
-
-        it "should should always escape values" do
-          query.where(:title => 'Hello@World')
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = 'Hello@@@World')"
-        end
-
-        it "should should always escape values on arrays" do
-          query.where(:title => ['Hello@World', 'Banana@Land'])
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` IN ('Hello@@@World', 'Banana@@@Land'))"
-        end
-
-        it "should escape on equal" do
-          query.where(:title => {:equal => 'He@llo'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = 'He@@@llo')"
-        end
-
-        it "should escape on not equal to" do
-          query.where(:title => {:not_equal => 'H@ello'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` != 'H@@@ello')"
-        end
-
-        it "should escape on greater than" do
-          query.where(:views => {:greater_than => '2@2'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`views` > '2@@@2')"
-        end
-
-        it "should escape on less than" do
-          query.where(:views => {:less_than => '2@2'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`views` < '2@@@2')"
-        end
-
-        it "should escape on greater than or equal to" do
-          query.where(:views => {:greater_than_or_equal_to => '2@2'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`views` >= '2@@@2')"
-        end
-
-        it "should escape on less than or equal to" do
-          query.where(:views => {:less_than_or_equal_to => '2@2'})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`views` <= '2@@@2')"
-        end
-
-        it "should escape on in an array" do
-          query.where(:author_id => {:in => ['H@w', 'A@m']})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author_id` IN ('H@@@w', 'A@@@m'))"
-        end
-
-        it "should escape on not in an array" do
-          query.where(:author_id => {:not_in => ['H@w', 'A@m']})
-          expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`author_id` NOT IN ('H@@@w', 'A@@@m'))"
-        end
-      end
-
     end
 
   end
