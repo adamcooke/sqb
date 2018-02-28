@@ -29,13 +29,8 @@ module SQB
       elsif value.is_a?(Integer)
         value.to_i
       else
-        if @options[:prepared] == false
-          escaped_value = @escape_block ? @escape_block.call(value.to_s) : value.to_s
-          "'" + escaped_value + "'"
-        else
-          @prepared_arguments << value.to_s
-          '?'
-        end
+        @prepared_arguments << value.to_s
+        '?'
       end
     end
 
