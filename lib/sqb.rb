@@ -5,6 +5,7 @@ require 'sqb/query'
 require 'sqb/select'
 require 'sqb/update'
 require 'sqb/delete'
+require 'sqb/insert'
 
 module SQB
   def self.safe(string)

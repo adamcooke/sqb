@@ -18,7 +18,7 @@ module SQB
             "#{escape_and_join(@table_name, key)} = #{value_escape(value)}"
           end.join(', ')
         else
-          raise NoUpdatesError, "No variables have been updated"
+          raise NoValuesError, "No values have been updated. Use `set` to set the values to update."
         end
 
         if @where && !@where.empty?

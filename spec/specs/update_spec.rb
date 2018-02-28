@@ -5,7 +5,7 @@ describe SQB::Update do
   subject(:query) { SQB::Update.new(:posts) }
 
   it "should raise error if no updates added" do
-    expect { query.to_sql }.to raise_error(SQB::NoUpdatesError)
+    expect { query.to_sql }.to raise_error(SQB::NoValuesError)
   end
 
   it "should add columns to update" do

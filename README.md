@@ -150,6 +150,15 @@ To only return distinct rows for your dataset:
 query.distinct
 ```
 
+## Inserting data
+
+The INSERT query is one of the less friendly ones but SQB makes light work of it.
+
+```ruby
+query = SQB::Insert.new(:posts)
+query.value(:title => 'Hello world!', :author_id => 1)
+```
+
 ## Updating data
 
 SQB supports crafting UPDATE queries too. You can use the same options for `where` as when selecting data (see above). The `set` method accepts a hash of all values that you wish to update (it can be called multiple times to add additional values).
