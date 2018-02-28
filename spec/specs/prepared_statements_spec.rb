@@ -7,12 +7,12 @@ describe SQB::Select do
   context "prepared statements" do
     it "should insert ? for each value" do
       query.where(:title => "Hello world!")
-      expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = ?)'
+      expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = ?)'
     end
 
     it "should provide the values in order" do
       query.where(:title => "Hello world!", :author => "Me")
-      expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts` WHERE (`posts`.`title` = ? AND `posts`.`author` = ?)'
+      expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = ? AND `posts`.`author` = ?)'
       expect(query.prepared_arguments[0]).to eq 'Hello world!'
       expect(query.prepared_arguments[1]).to eq 'Me'
     end

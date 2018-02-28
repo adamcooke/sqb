@@ -25,7 +25,7 @@ module SQB
         query << "SELECT"
         query << "DISTINCT" if @distinct
         if @columns.nil? || @columns.empty?
-          query << escape_and_join(@table_name, '*')
+          query << escape_and_join(@table_name, SQB::STAR)
         else
           query << @columns.join(', ')
         end

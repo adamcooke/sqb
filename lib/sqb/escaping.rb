@@ -6,6 +6,8 @@ module SQB
     def escape(name)
       if name.is_a?(SafeString)
         name
+      elsif name == SQB::STAR
+        "*"
       else
         "`#{name.to_s.gsub('`', '``')}`"
       end

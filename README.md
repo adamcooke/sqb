@@ -81,6 +81,9 @@ query.column(:id, :function => 'COUNT', :as => 'count')
 
 # If you have already added columns and wish to replace them all with a new one
 query.column!(:other_column)
+
+# You can choose to select all columns too
+query.column(SQB::STAR)
 ```
 
 ### Specifying orders

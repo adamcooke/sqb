@@ -19,7 +19,7 @@ describe SQB::Select do
 
     it "should allow distinct" do
       query.distinct
-      expect(query.to_sql).to eq 'SELECT DISTINCT `posts`.`*` FROM `posts`'
+      expect(query.to_sql).to eq 'SELECT DISTINCT `posts`.* FROM `posts`'
     end
 
     it "should allow an alias" do
@@ -40,6 +40,16 @@ describe SQB::Select do
     it "should allow safe values to be passed in" do
       query.column(SQB.safe('BLAH(example)'))
       expect(query.to_sql).to eq "SELECT BLAH(example) FROM `posts`"
+    end
+
+    it "should allow selecting with stars" do
+      query.column(SQB::STAR)
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts`"
+    end
+
+    it "should allow selecting with stars on other tables" do
+      query.column({:other => SQB::STAR})
+      expect(query.to_sql).to eq "SELECT `other`.* FROM `posts`"
     end
 
     context "escaping" do

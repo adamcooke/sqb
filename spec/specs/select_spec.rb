@@ -5,7 +5,7 @@ describe SQB::Select do
   subject(:query) { SQB::Select.new(:posts) }
 
   it "should start empty" do
-    expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts`'
+    expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts`'
   end
 
   it "should accept a block" do
@@ -17,7 +17,7 @@ describe SQB::Select do
 
   it "should work with Query for backwards compatibility" do
     query = SQB::Query.new(:posts)
-    expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts`'
+    expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts`'
   end
 
 end

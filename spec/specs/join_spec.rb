@@ -8,18 +8,18 @@ describe SQB::Select do
 
     it "should allow joins to be added" do
       query.join(:comments, :post_id)
-      expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id`'
+      expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id`'
     end
 
     it "should auto name per table" do
       query.join(:comments, :post_id)
       query.join(:tags, :post_id)
-      expect(query.to_sql).to eq 'SELECT `posts`.`*` FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` INNER JOIN `tags` AS `tags_0` ON `posts`.`id` = `tags_0`.`post_id`'
+      expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` INNER JOIN `tags` AS `tags_0` ON `posts`.`id` = `tags_0`.`post_id`'
     end
 
     it "should allow querying" do
       query.join(:comments, :post_id, :where => {:content => "Hello"})
-      expect(query.to_sql).to eq "SELECT `posts`.`*` FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` WHERE (`comments_0`.`content` = ?)"
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` INNER JOIN `comments` AS `comments_0` ON `posts`.`id` = `comments_0`.`post_id` WHERE (`comments_0`.`content` = ?)"
     end
 
     it "should allow field selection" do
