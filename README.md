@@ -12,10 +12,10 @@ gem 'sqb'
 
 ## Usage
 
-To get started just create yourself a `SQB::Query` object and provide the base table name.
+To get started just create yourself a `SQB::Select` object and provide the base table name.
 
 ```ruby
-query = SQB::Query.new(:posts)
+query = SQB::Select.new(:posts)
 ```
 
 When you've done all the operations on the query that you wish to do (see below) you can extract the finished SQL query and prepared arguments for passing to a database client.

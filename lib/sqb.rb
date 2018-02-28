@@ -1,4 +1,5 @@
 require 'sqb/query'
+require 'sqb/select'
 require 'sqb/version'
 require 'sqb/safe_string'
 

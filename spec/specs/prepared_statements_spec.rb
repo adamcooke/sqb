@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe SQB::Query do
+describe SQB::Select do
 
-  subject(:query) { SQB::Query.new(:posts) }
+  subject(:query) { SQB::Select.new(:posts) }
 
   context "prepared statements" do
     it "should insert ? for each value" do
