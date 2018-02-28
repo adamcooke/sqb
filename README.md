@@ -160,15 +160,6 @@ You can specify the name of a database that you wish to query. By default, no da
 query = SQB::Query.new(:posts, :database_name => :my_blog)
 ```
 
-### Prepared statements
-
-As you'll have seen, by default, SQB returns queries designed to be used as prepared statements. If you'd rather not do this, you can but you'll need to provide a method for escaping data.
-
-```ruby
-query = SQB::Query.new(:posts, :prepared => false) { |value| mysql.escape(value) }
-query.to_sql
-```
-
 ### Inserting arbitary strings
 
 There are occasions where you need to break free from constraints. You can do that by passing strings through the `SQB.safe(string)` method. This will avoid any escaping or clever magic by SQB and the string provided will simply be inserted in the query as appropriate.
