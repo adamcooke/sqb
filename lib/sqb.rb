@@ -1,7 +1,9 @@
-require 'sqb/query'
-require 'sqb/select'
 require 'sqb/version'
 require 'sqb/safe_string'
+
+require 'sqb/query'
+require 'sqb/select'
+require 'sqb/update'
 
 module SQB
   def self.safe(string)

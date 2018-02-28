@@ -10,7 +10,7 @@ This is a gem that allows you to construct SQL queries from a simple Ruby DSL. T
 gem 'sqb'
 ```
 
-## Usage
+## Selecting data
 
 To get started just create yourself a `SQB::Select` object and provide the base table name.
 
@@ -148,6 +148,16 @@ To only return distinct rows for your dataset:
 
 ```ruby
 query.distinct
+```
+
+## Updating data
+
+SQB supports crafting UPDATE queries too. You can use the same options for `where` as when selecting data (see above). The `set` method accepts a hash of all values that you wish to update (it can be called multiple times to add additional values).
+
+```ruby
+query = SQB::Update.new(:posts)
+query.set(:title => 'Hello world!')
+query.where(:id => 10)
 ```
 
 ## Other options

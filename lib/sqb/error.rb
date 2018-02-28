@@ -10,4 +10,7 @@ module SQB
 
   class InvalidOperatorError < Error
   end
+
+  class NoUpdatesError < Error
+  end
 end
