@@ -138,7 +138,66 @@ describe SQB::Select do
         query.where({"table`name" => "title"} => 'Hello')
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`table``name`.`title` = ?)"
       end
+    end
 
+    context "with a block" do
+      it "should work with basic equals" do
+        query.where { |w| w.title = "asd" }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = ?)"
+      end
+
+      it "should work with not equals" do
+        query.where { |w| w.title.not = "asd" }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` != ?)"
+      end
+
+      it "should work with includes" do
+        query.where { |w| w.title.includes 1,2,3,4 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` IN (1, 2, 3, 4))"
+      end
+
+      it "should work with negative like" do
+        query.where { |w| w.title.not.includes 1,2,3,4 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` NOT IN (1, 2, 3, 4))"
+      end
+
+      it "should work with greater than" do
+        query.where { |w| w.views > 10 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` > 10)"
+      end
+
+      it "should work with greater than or equal to" do
+        query.where { |w| w.views >= 10 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` >= 10)"
+      end
+
+      it "should work with less than" do
+        query.where { |w| w.views < 10 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` < 10)"
+      end
+
+      it "should work with less than or equal to" do
+        query.where { |w| w.views <= 10 }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` <= 10)"
+      end
+
+      it "should work with like" do
+        query.where { |w| w.title =~ "%Test%" }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` LIKE ?)"
+      end
+
+      it "should work with negative like" do
+        query.where { |w| w.title.not =~ "%Test%" }
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` NOT LIKE ?)"
+      end
+
+      it "should work with OR queries" do
+        query.or do
+          query.where { |w| w.title = "Hello" }
+          query.where { |w| w.title = "World" }
+        end
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
+      end
     end
 
   end

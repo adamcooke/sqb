@@ -1,3 +1,5 @@
+require 'sqb/where_dsl'
+
 module SQB
   module Filtering
 
@@ -5,12 +7,20 @@ module SQB
     #
     # @param hash [Hash]
     # @return [Query]
-    def where(hash)
-      if @where_within_or && @where_within_or.last
-        @where_within_or.last << hash
+    def where(hash = nil, &block)
+      if hash
+        if @where_within_or && @where_within_or.last
+          @where_within_or.last << hash
+        else
+          @where ||= []
+          @where << hash_to_sql(hash)
+        end
+      elsif block_given?
+        dsl = WhereDSL.new
+        block.call(dsl)
+        where(dsl.hash)
       else
-        @where ||= []
-        @where << hash_to_sql(hash)
+        raise QueryError, "Must provide a hash or a block to `where`"
       end
       self
     end
