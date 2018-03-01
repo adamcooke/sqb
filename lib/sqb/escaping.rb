@@ -30,6 +30,8 @@ module SQB
         'NULL'
       elsif value.is_a?(Integer)
         value.to_i
+      elsif value.is_a?(SQB::SafeString)
+        value.to_s
       else
         @prepared_arguments << value.to_s
         '?'
