@@ -58,7 +58,11 @@ module SQB
 
         if value.is_a?(Array)
           escaped_values = value.map { |v| value_escape(v) }.join(', ')
-          "#{key} IN (#{escaped_values})"
+          if escaped_values.empty?
+            "1=0"
+          else
+            "#{key} IN (#{escaped_values})"
+          end
         elsif value.is_a?(Hash)
           sql = []
           value.each do |operator, value|

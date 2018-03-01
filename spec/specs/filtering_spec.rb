@@ -97,6 +97,12 @@ describe SQB::Select do
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = ? AND 1=0)"
       end
 
+      it "should handle searching on empty arrays by returning nothing" do
+        query.where(:title => [])
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (1=0)"
+      end
+
+
       it "should handle like" do
         query.where(:author => {:like => '%Adam'})
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`author` LIKE ?)"
