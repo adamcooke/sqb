@@ -85,8 +85,13 @@ module SQB
               sql << "#{key} >= #{value_escape(value)}"
             when :in, :not_in
               escaped_values = value.map { |v| value_escape(v) }.join(', ')
-              op = operator == :in ? "IN" : "NOT IN"
-              sql << "#{key} #{op} (#{escaped_values})"
+              if escaped_values.empty?
+                # If there are no values to search from, don't find anything
+                "1=0"
+              else
+                op = operator == :in ? "IN" : "NOT IN"
+                sql << "#{key} #{op} (#{escaped_values})"
+              end
             when :like
               sql << "#{key} LIKE #{value_escape(value)}"
             when :not_like
