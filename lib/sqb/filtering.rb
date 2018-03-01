@@ -90,13 +90,13 @@ module SQB
         else
           "#{key} != #{value_escape(value)}"
         end
-      when :less_than
+      when :less_than, :lt
         "#{key} < #{value_escape(value)}"
-      when :greater_than
+      when :greater_than, :gt
         "#{key} > #{value_escape(value)}"
-      when :less_than_or_equal_to
+      when :less_than_or_equal_to, :lte
         "#{key} <= #{value_escape(value)}"
-      when :greater_than_or_equal_to
+      when :greater_than_or_equal_to, :gte
         "#{key} >= #{value_escape(value)}"
       when :in, :not_in
         escaped_values = value.map { |v| value_escape(v) }.join(', ')

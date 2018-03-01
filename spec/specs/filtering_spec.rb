@@ -67,8 +67,18 @@ describe SQB::Select do
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` > 2)"
       end
 
+      it "should handle greater than with short hand" do
+        query.where(:views => {:gt => 2})
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` > 2)"
+      end
+
       it "should handle less than" do
         query.where(:views => {:less_than => 2})
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` < 2)"
+      end
+
+      it "should handle less than with short hand" do
+        query.where(:views => {:lt => 2})
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` < 2)"
       end
 
@@ -77,8 +87,18 @@ describe SQB::Select do
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` >= 2)"
       end
 
+      it "should handle greater than or equal to with short hand" do
+        query.where(:views => {:gte => 2})
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` >= 2)"
+      end
+
       it "should handle less than or equal to" do
         query.where(:views => {:less_than_or_equal_to => 2})
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` <= 2)"
+      end
+
+      it "should handle less than or equal to with short hand" do
+        query.where(:views => {:lte => 2})
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`views` <= 2)"
       end
 
