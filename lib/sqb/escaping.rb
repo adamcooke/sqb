@@ -38,7 +38,11 @@ module SQB
 
     def with_table_and_column(input, &block)
       if input.is_a?(Hash)
-        input.each { |table, column| block.call(table, column) }
+        if input.size == 1
+          block.call(input.first[0], input.first[1])
+        else
+          raise QueryError, "Column names provided as a hash must only contain a single item"
+        end
       else
         block.call(@table_name, input)
       end

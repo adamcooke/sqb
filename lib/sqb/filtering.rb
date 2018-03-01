@@ -10,7 +10,7 @@ module SQB
         @where_within_or.last << hash
       else
         @where ||= []
-        @where << hash_to_sql(hash, @table_name)
+        @where << hash_to_sql(hash)
       end
       self
     end
@@ -31,7 +31,7 @@ module SQB
       # executed within the block.
       if w = @where_within_or.pop
         @where_within_or_sql << w.map do |w|
-          hash_to_sql(w, @table_name)
+          hash_to_sql(w)
         end.join(' OR ')
       end
 
@@ -47,71 +47,63 @@ module SQB
 
     private
 
-    def hash_to_sql(hash, table, joiner = ' AND ')
+    def hash_to_sql(hash, joiner = ' AND ')
       sql = hash.map do |key, value|
-        if key.is_a?(Hash)
-          table = key.first[0]
-          key = key.first[1]
-        end
-
-        key = escape_and_join(table, key)
-
-        if value.is_a?(Array)
-          escaped_values = value.map { |v| value_escape(v) }.join(', ')
-          if escaped_values.empty?
-            "1=0"
-          else
-            "#{key} IN (#{escaped_values})"
-          end
-        elsif value.is_a?(Hash)
-          sql = []
-          value.each do |operator, value|
-            case operator
-            when :not_equal
-              if value.nil?
-                sql << "#{key} IS NOT NULL"
-              else
-                sql << "#{key} != #{value_escape(value)}"
-              end
-            when :equal
-              if value.nil?
-                sql << "#{key} IS NULL"
-              else
-                sql << "#{key} = #{value_escape(value)}"
-              end
-            when :less_than
-              sql << "#{key} < #{value_escape(value)}"
-            when :greater_than
-              sql << "#{key} > #{value_escape(value)}"
-            when :less_than_or_equal_to
-              sql << "#{key} <= #{value_escape(value)}"
-            when :greater_than_or_equal_to
-              sql << "#{key} >= #{value_escape(value)}"
-            when :in, :not_in
-              escaped_values = value.map { |v| value_escape(v) }.join(', ')
-              if escaped_values.empty?
-                # If there are no values to search from, don't find anything
-                "1=0"
-              else
-                op = operator == :in ? "IN" : "NOT IN"
-                sql << "#{key} #{op} (#{escaped_values})"
-              end
-            when :like
-              sql << "#{key} LIKE #{value_escape(value)}"
-            when :not_like
-              sql << "#{key} NOT LIKE #{value_escape(value)}"
-            else
-              raise InvalidOperatorError, "Invalid operator '#{operator}'"
+        with_table_and_column(key) do |table, column|
+          key = escape_and_join(table, column)
+          if value.is_a?(Array)
+            condition(key, :in, value)
+          elsif value.is_a?(Hash)
+            sql = value.map do |operator, value|
+              condition(key, operator, value)
             end
+            sql.empty? ? "1=0" : sql.join(joiner)
+          else
+            condition(key, :equal, value)
           end
-          sql.empty? ? "1=0" : sql.join(joiner)
-        elsif value == nil
+        end
+      end.join(joiner)
+      "(#{sql})"
+    end
+
+    def condition(key, operator, value)
+      case operator
+      when :equal
+        if value.nil?
           "#{key} IS NULL"
         else
           "#{key} = #{value_escape(value)}"
         end
-      end.join(joiner)
-      "(#{sql})"
+      when :not_equal
+        if value.nil?
+          "#{key} IS NOT NULL"
+        else
+          "#{key} != #{value_escape(value)}"
+        end
+      when :less_than
+        "#{key} < #{value_escape(value)}"
+      when :greater_than
+        "#{key} > #{value_escape(value)}"
+      when :less_than_or_equal_to
+        "#{key} <= #{value_escape(value)}"
+      when :greater_than_or_equal_to
+        "#{key} >= #{value_escape(value)}"
+      when :in, :not_in
+        escaped_values = value.map { |v| value_escape(v) }.join(', ')
+        if escaped_values.empty?
+          # If there are no values to search from, don't find anything
+          "1=0"
+        else
+          op = operator == :in ? "IN" : "NOT IN"
+          "#{key} #{op} (#{escaped_values})"
+        end
+      when :like
+        "#{key} LIKE #{value_escape(value)}"
+      when :not_like
+        "#{key} NOT LIKE #{value_escape(value)}"
+      else
+        raise InvalidOperatorError, "Invalid operator '#{operator}'"
+      end
     end
 
   end

@@ -13,4 +13,7 @@ module SQB
 
   class NoValuesError < Error
   end
+
+  class QueryError < Error
+  end
 end
