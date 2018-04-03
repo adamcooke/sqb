@@ -28,6 +28,10 @@ module SQB
     # Set that all conditions added in this block should be joined using OR
     # rather than AND.
     def or(&block)
+      if @where_within_or.is_a?(Array)
+        raise QueryError, "Cannot nest an or block within another or block"
+      end
+
       @where_within_or ||= []
       # Start by making an array within the OR block for this calling
       @where_within_or << []

@@ -146,6 +146,18 @@ describe SQB::Select do
         end
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
       end
+
+      it "should raise an error with nested ors" do
+        query.or do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+          expect do
+            query.or do
+              query.where(:title => "Banana")
+            end
+          end.to raise_error(SQB::QueryError)
+        end
+      end
     end
 
     context "escaping" do
