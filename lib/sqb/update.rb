@@ -15,7 +15,7 @@ module SQB
         query << "SET"
         if @sets && !@sets.empty?
           query << @sets.map do |key, value|
-            "#{escape_and_join(@table_name, key)} = #{value_escape(value)}"
+            "#{escape_and_join(@table_name, key)} = #{value}"
           end.join(', ')
         else
           raise NoValuesError, "No values have been updated. Use `set` to set the values to update."
@@ -41,9 +41,13 @@ module SQB
     # @param key [String]
     # @param value [String, nil]
     def set(hash)
+      if @where
+        raise QueryError, "Filtering has already been provided. Must filter after setting values."
+      end
+
       @sets ||= {}
       hash.each do |key, value|
-        @sets[key] = value
+        @sets[key] = value_escape(value)
       end
       self
     end

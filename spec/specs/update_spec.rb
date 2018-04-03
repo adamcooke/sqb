@@ -26,4 +26,14 @@ describe SQB::Update do
     expect(query.to_sql).to eq "UPDATE `posts` SET `posts`.`title` = ? WHERE (`posts`.`id` = 10)"
   end
 
+  it "should add prepared arguments to array on set when actually added" do
+    query.set(:title => "Hello!")
+    expect(query.prepared_arguments[0]).to eq 'Hello!'
+  end
+
+  it "should raise an error when where is defined before set" do
+    query.where(:id => 10)
+    expect { query.set(:title => "Hello world!") }.to raise_error(SQB::QueryError)
+  end
+
 end
