@@ -30,6 +30,7 @@ query.prepared_arguments
 # For example with the MySQL2 client you might do this...
 statement = mysql.prepare(query.to_sql)
 statement.execute(*query.prepared_arguments)
+statement.close
 ```
 
 ### Filtering
