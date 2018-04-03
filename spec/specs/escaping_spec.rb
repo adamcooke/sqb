@@ -73,4 +73,28 @@ describe SQB::Select do
     expect(query.prepared_arguments).to be_empty
   end
 
+  it "should escape complex queries with ? and add items to prepared arguments in the correct order" do
+    query.where(:field1 => "value1", :field2 => "value2", :field3 => "value3", :field4 => {:not_equal => "value4"})
+    query.where(:field5 => "value5")
+    query.or do
+      query.where(:field6 => "value6")
+      query.where(:field7 => "value7")
+    end
+    expect(query.prepared_arguments[0]).to eq("value1")
+    expect(query.prepared_arguments[1]).to eq("value2")
+    expect(query.prepared_arguments[2]).to eq("value3")
+    expect(query.prepared_arguments[3]).to eq("value4")
+    expect(query.prepared_arguments[4]).to eq("value5")
+    expect(query.prepared_arguments[5]).to eq("value6")
+    expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`field1` = ? AND `posts`.`field2` = ? AND `posts`.`field3` = ? AND `posts`.`field4` != ?) AND (`posts`.`field5` = ?) AND ((`posts`.`field6` = ?) OR (`posts`.`field7` = ?))"
+  end
+
+  it "should support setting a method to escape strings in place rather than using prepared arguments" do
+    escaper = proc { |string| "'#{string}'"}
+    query = SQB::Select.new(:posts, :escaper => escaper)
+    query.where(:name => "Hello!")
+    expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (`posts`.`name` = 'Hello!')"
+  end
+
+
 end

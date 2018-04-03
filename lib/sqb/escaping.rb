@@ -33,8 +33,12 @@ module SQB
       elsif value.is_a?(SQB::SafeString)
         value.to_s
       else
-        @prepared_arguments << value.to_s
-        '?'
+        if @options[:escaper]
+          @options[:escaper].call(value.to_s)
+        else
+          @prepared_arguments << value.to_s
+          '?'
+        end
       end
     end
 
