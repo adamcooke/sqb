@@ -26,4 +26,25 @@ describe SQB::Insert do
     expect(query.to_sql).to eq "INSERT INTO `posts` (`title`) VALUES (NULL)"
   end
 
+  it "should handle inserting multiple records" do
+    query.record { query.value(:title => "Item 1") }
+    query.record { query.value(:title => "Item 2", :type => "Widget") }
+    query.record { query.value(:title => "Item 3") }
+    expect(query.to_sql).to eq "INSERT INTO `posts` (`title`, `type`) VALUES (?, NULL), (?, ?), (?, NULL)"
+  end
+
+  it "should handle inserting multiple records" do
+    query.record { query.value(:title => "Item 1") }
+    query.record { query.value(:title => "Item 2", :type => "Widget") }
+    query.record { query.value(:title => "Item 3") }
+    query.value(:title => "Item 4")
+    expect(query.to_sql).to eq "INSERT INTO `posts` (`title`, `type`) VALUES (?, NULL), (?, NULL), (?, ?), (?, NULL)"
+    expect(query.prepared_arguments[0]).to eq "Item 4"
+    expect(query.prepared_arguments[1]).to eq "Item 1"
+    expect(query.prepared_arguments[2]).to eq "Item 2"
+    expect(query.prepared_arguments[3]).to eq "Widget"
+    expect(query.prepared_arguments[4]).to eq "Item 3"
+  end
+
+
 end
