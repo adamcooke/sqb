@@ -5,7 +5,7 @@ module SQB
 
     def to_sql
       [].tap do |query|
-        query << "INSERT INTO"
+        query << "#{mysql_verb} INTO"
         query << escape_and_join(@options[:database_name], @table_name)
         if @values.nil? || @values.empty?
           raise NoValuesError, "No values have been specified. Use `value` to add values to the query."
@@ -37,6 +37,10 @@ module SQB
 
     def values
       @values.values.map { |v| value_escape(v) }
+    end
+
+    def mysql_verb
+      "INSERT"
     end
 
   end

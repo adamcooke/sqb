@@ -6,6 +6,7 @@ require 'sqb/select'
 require 'sqb/update'
 require 'sqb/delete'
 require 'sqb/insert'
+require 'sqb/replace'
 
 module SQB
 
