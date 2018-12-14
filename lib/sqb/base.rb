@@ -7,6 +7,7 @@ module SQB
     include SQB::Escaping
 
     attr_reader :prepared_arguments
+    attr_reader :options
 
     def initialize(table_name, options = {}, &block)
       @table_name = table_name
