@@ -35,8 +35,8 @@ module SQB
         query << "FROM"
         query << escape_and_join(@options[:database_name], @table_name)
 
-        if @index_hint
-          query << @index_hint
+        if @index_hints && !@index_hints.empty?
+          query << 'USE INDEX (' + @index_hints.join(', ') + ')'
         end
 
         if @joins && !@joins.empty?

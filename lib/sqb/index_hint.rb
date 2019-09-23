@@ -1,7 +1,15 @@
 module SQB
   module IndexHint
+
     def index_hint(index)
-      @index_hint = "USE INDEX (#{escape(index)})"
+      @index_hints ||= []
+      @index_hints << escape(index)
+      self
     end
+
+    def no_index_hint!
+      @index_hints = nil
+    end
+    
   end
 end
