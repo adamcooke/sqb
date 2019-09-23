@@ -9,6 +9,7 @@ module SQB
 
     def no_index_hint!
       @index_hints = nil
+      self
     end
     
   end
