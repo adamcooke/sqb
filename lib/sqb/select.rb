@@ -7,6 +7,7 @@ require 'sqb/ordering'
 require 'sqb/grouping'
 require 'sqb/limiting'
 require 'sqb/offsetting'
+require 'sqb/index_hint'
 
 module SQB
   class Select < Base
@@ -19,6 +20,7 @@ module SQB
     include SQB::Grouping
     include SQB::Limiting
     include SQB::Offsetting
+    include SQB::IndexHint
 
     def to_sql
       [].tap do |query|
@@ -32,6 +34,10 @@ module SQB
 
         query << "FROM"
         query << escape_and_join(@options[:database_name], @table_name)
+
+        if @index_hint
+          query << @index_hint
+        end
 
         if @joins && !@joins.empty?
           query << @joins.join(' ')
