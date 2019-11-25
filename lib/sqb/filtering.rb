@@ -28,35 +28,14 @@ module SQB
     # Set that all conditions added in this block should be joined using OR
     # rather than AND.
     def or(&block)
-      if @where_within_or.is_a?(Array)
-        raise QueryError, "Cannot nest an or block within another or block"
-      end
+      select_fragment('OR', &block)
+    end
 
-      @where_within_or ||= []
-      # Start by making an array within the OR block for this calling
-      @where_within_or << []
-      # Execute the block. All queries to 'where' will be added to the last
-      # array in the chain (created above)
-      block.call
-    ensure
-      # Start work on a full array of SQL fragments for all OR queries
-      @where_within_or_sql ||= []
-      # After each OR call, store up the SQL fragment for all where queries
-      # executed within the block.
-      if w = @where_within_or.pop
-        @where_within_or_sql << w.map do |w|
-          hash_to_sql(w)
-        end.join(' OR ')
-      end
-
-      # When there are no fragments in the chain left, add it to the main
-      # where chain for the query.
-      if @where_within_or.empty?
-        @where ||= []
-        @where << "(#{@where_within_or_sql.flatten.join(' OR ')})"
-        @where_within_or_sql = nil
-      end
-      self
+    # Set that all conditions added in this block should be joined using AND.
+    # This is the default behaviour but this allows the where queries within to
+    # be grouped together in the query too.
+    def and(&block)
+      select_fragment('AND', &block)
     end
 
     private
@@ -118,6 +97,46 @@ module SQB
       else
         raise InvalidOperatorError, "Invalid operator '#{operator}'"
       end
+    end
+
+    def select_fragment(joiner, &block)
+      if @where_within_or.is_a?(Array)
+        @no_ensure = true
+        raise QueryError, "Cannot nest an or block within another or block"
+      end
+
+      @where_within_or ||= []
+
+      # Start by making an array within the OR block for this calling
+      @where_within_or << []
+
+      # Execute the block. All queries to 'where' will be added to the last
+      # array in the chain (created above)
+      block.call
+
+    ensure
+      return if @no_ensure
+
+      # Start work on a full array of SQL fragments for all OR queries
+      @where_within_or_sql ||= []
+
+      # After each OR call, store up the SQL fragment for all where queries
+      # executed within the block.
+      if w = @where_within_or.pop
+        @where_within_or_sql << w.map do |w|
+          hash_to_sql(w)
+        end.join(" #{joiner} ")
+      end
+
+      # When there are no fragments in the chain left, add it to the main
+      # where chain for the query.
+      if @where_within_or.empty?
+        @where ||= []
+        @where << "(#{@where_within_or_sql.flatten.join(" #{joiner} ")})"
+        @where_within_or_sql = nil
+        @where_within_or = nil
+      end
+      self
     end
 
   end

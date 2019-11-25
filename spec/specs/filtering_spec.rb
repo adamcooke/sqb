@@ -147,12 +147,62 @@ describe SQB::Select do
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
       end
 
+      it "should join with ORs within an or block" do
+        query.or do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+        end
+
+        query.or do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+        end
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?)) AND ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
+      end
+
       it "should raise an error with nested ors" do
         query.or do
           query.where(:title => "Hello")
           query.where(:title => "World")
           expect do
             query.or do
+              query.where(:title => "Banana")
+            end
+          end.to raise_error(SQB::QueryError)
+        end
+      end
+    end
+
+    context "and" do
+      it "should join with ANDs within an or block" do
+        query.and do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+        end
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) AND (`posts`.`title` = ?))"
+      end
+
+      it "should join with ANDs within an AND block" do
+        query.and do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+        end
+
+        query.and do
+          query.where(:title => "Potatos")
+          query.where(:title => "Tomatoes")
+        end
+
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) AND (`posts`.`title` = ?)) AND ((`posts`.`title` = ?) AND (`posts`.`title` = ?))"
+      end
+
+
+      it "should raise an error with nested ands" do
+        query.and do
+          query.where(:title => "Hello")
+          query.where(:title => "World")
+          expect do
+            query.and do
               query.where(:title => "Banana")
             end
           end.to raise_error(SQB::QueryError)
