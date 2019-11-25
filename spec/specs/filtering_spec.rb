@@ -217,7 +217,7 @@ describe SQB::Select do
         other_query.column(:id, :function => 'COUNT')
         query.where(other_query => {:greater_than => 10})
 
-        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id) > 10)"
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id)) > 10)"
       end
 
       it "should be able to be add prepared arguments as needed" do
@@ -228,7 +228,7 @@ describe SQB::Select do
         query.where(other_query => {:greater_than => 10})
         query.where(subject: 'Hello')
 
-        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id) AND (`comments`.`author_name` = ?) > 10) AND (`posts`.`subject` = ?)"
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id) AND (`comments`.`author_name` = ?)) > 10) AND (`posts`.`subject` = ?)"
         expect(query.prepared_arguments[0]).to eq 'Steve'
         expect(query.prepared_arguments[1]).to eq 'Hello'
       end

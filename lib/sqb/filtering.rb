@@ -48,7 +48,7 @@ module SQB
             key.prepared_arguments.each do |value|
               @prepared_arguments << value
             end
-            key = key.to_sql
+            key = "(#{key.to_sql})"
           else
             key = escape_and_join(table, column)
           end
