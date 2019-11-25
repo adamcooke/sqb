@@ -42,8 +42,17 @@ module SQB
 
     def hash_to_sql(hash, joiner = ' AND ')
       sql = hash.map do |key, value|
+
         with_table_and_column(key) do |table, column|
-          key = escape_and_join(table, column)
+          if key.is_a?(SQB::Select)
+            key.prepared_arguments.each do |value|
+              @prepared_arguments << value
+            end
+            key = key.to_sql
+          else
+            key = escape_and_join(table, column)
+          end
+
           if value.is_a?(Array)
             condition(key, :in, value)
           elsif value.is_a?(Hash)

@@ -61,6 +61,12 @@ query.where(:author_id => {:not_in => [1,2,3,4]})
 # Nulls
 query.where(:markdown => nil)
 query.where(:markdown => {:not_equal => nil})
+
+# Sub-queries
+other_query = SQB::Select.new(:comments)
+other_query.where(post_id: SQB.safe("posts.id"))
+other_query.select(:count, :function => 'COUNT')
+query.where(other_query => {:greater_than => 10})
 ```
 
 By default all filtering operations will be joined with ANDs. You can use OR if needed.

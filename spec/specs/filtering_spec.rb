@@ -210,6 +210,30 @@ describe SQB::Select do
       end
     end
 
+    context "sub queries" do
+      it "should be able to be used in where clauses" do
+        other_query = SQB::Select.new(:comments)
+        other_query.where(post_id: SQB.safe("posts.id"))
+        other_query.column(:id, :function => 'COUNT')
+        query.where(other_query => {:greater_than => 10})
+
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id) > 10)"
+      end
+
+      it "should be able to be add prepared arguments as needed" do
+        other_query = SQB::Select.new(:comments)
+        other_query.where(post_id: SQB.safe("posts.id"))
+        other_query.where(author_name: 'Steve')
+        other_query.column(:id, :function => 'COUNT')
+        query.where(other_query => {:greater_than => 10})
+        query.where(subject: 'Hello')
+
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (SELECT COUNT( `comments`.`id` ) FROM `comments` WHERE (`comments`.`post_id` = posts.id) AND (`comments`.`author_name` = ?) > 10) AND (`posts`.`subject` = ?)"
+        expect(query.prepared_arguments[0]).to eq 'Steve'
+        expect(query.prepared_arguments[1]).to eq 'Hello'
+      end
+    end
+
     context "escaping" do
       it "should escape column names" do
         query.where("column`name" => 'Hello')
