@@ -1,6 +1,8 @@
 module SQB
   module Joins
 
+    TYPES_OF_JOIN = [:inner, :left, :right].freeze
+
     # Add a join
     #
     # @param table_name [String, Symbol]
@@ -18,6 +20,12 @@ module SQB
         foreign_key = foreign_key.to_s
       end
 
+      type = options[:type] || :inner
+
+      unless TYPES_OF_JOIN.include?(type)
+        raise QueryError, "Invalid join type: #{type}"
+      end
+
       @joins ||= []
       @joins_name_mapping ||= {}
 
@@ -30,7 +38,12 @@ module SQB
       end
 
       @joins << [].tap do |query|
-        query << "INNER JOIN"
+        if type == :inner
+          query << "INNER"
+        else
+          query << "#{type.to_s.upcase} OUTER"
+        end
+        query << "JOIN"
         query << escape_and_join(@options[:database_name], table_name)
         query << "AS"
         query << escape(join_name)

@@ -127,10 +127,13 @@ query.join(:comments, :post_id)
 query.join(:comments, :post_id, :name => :comments)
 ```
 
-By default, this will join with the table but won't return any data. You'll likely want to add some conditions and/or some columns to return.
+By default, this will join with the table (by default `INNER JOIN`) but won't return any data. You'll likely want to add some conditions and/or some columns to return.
 
 ```ruby
 query.join(:comments, :post_id, :columns => [:content])
+
+# You can specify the type as either :inner, :left or :right
+query.join(:users, [:id, :author_id], :name => :author, :type => :left)
 
 # This will join users where the user `id` matches the `author_id` in the base table
 query.join(:users, [:id, :author_id], :name => :author)

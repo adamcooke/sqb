@@ -42,6 +42,24 @@ describe SQB::Select do
       expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` INNER JOIN `users` AS `users` ON (`posts`.`author_id` = `users`.`id`)"
     end
 
+    it 'should be able to do left joins' do
+      query.join(:users, [:id, :author_id], :name => :users, :type => :left)
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` LEFT OUTER JOIN `users` AS `users` ON (`posts`.`author_id` = `users`.`id`)"
+    end
+
+    it 'should be able to do right joins' do
+      query.join(:users, [:id, :author_id], :name => :users, :type => :right)
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` RIGHT OUTER JOIN `users` AS `users` ON (`posts`.`author_id` = `users`.`id`)"
+    end
+
+    it 'should raise an error if you provide an invalid join type' do
+      expect do
+        query.join(:users, [:id, :author_id], :name => :users, :type => :invalid)
+      end.to raise_error(SQB::QueryError) do |e|
+        expect(e.message).to match /invalid join type/i
+      end
+    end
+
   end
 
 end
