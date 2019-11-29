@@ -131,7 +131,13 @@ By default, this will join with the table but won't return any data. You'll like
 
 ```ruby
 query.join(:comments, :post_id, :columns => [:content])
-query.join(:comments, :post_id, :where => {:spam => true})
+
+# This will join users where the user `id` matches the `author_id` in the base table
+query.join(:users, [:id, :author_id], :name => :author)
+
+# You can add additional join conditions like so. The additional conditions will be
+# added to the `ON` part of the join along with the key join.
+query.join(:comments, :post_id, :conditions => {:spam => true})
 
 # You can also use the existing where and column methods to add joins to these tables
 query.column({:comments => :spam})

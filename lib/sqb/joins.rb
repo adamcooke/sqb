@@ -9,6 +9,15 @@ module SQB
     # @option options [Array] :select
     # @return [Query]
     def join(table_name, foreign_key, options = {})
+
+      if foreign_key.is_a?(Array)
+        local_key = foreign_key[1]
+        foreign_key = foreign_key[0]
+      else
+        local_key = "id"
+        foreign_key = foreign_key.to_s
+      end
+
       @joins ||= []
       @joins_name_mapping ||= {}
 
@@ -26,9 +35,17 @@ module SQB
         query << "AS"
         query << escape(join_name)
         query << "ON"
-        query << escape_and_join(@table_name, 'id')
-        query << "="
-        query << escape_and_join(join_name, foreign_key)
+
+        join_where = {}
+        join_where[{@table_name => local_key}] = SQB.safe(escape_and_join(join_name, foreign_key))
+        if options[:conditions]
+          options[:conditions].each do |(column, value)|
+            join_where[{join_name => column}] = value
+          end
+        end
+
+        query << hash_to_sql(join_where)
+
       end.join(' ')
 
       if options[:where]
