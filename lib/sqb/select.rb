@@ -27,13 +27,20 @@ module SQB
         query << "SELECT"
         query << "DISTINCT" if @distinct
         if @columns.nil? || @columns.empty?
-          query << escape_and_join(@table_name, SQB::STAR)
+          if @table_name.is_a?(SQB::Select)
+            query << escape_and_join('subQuery', SQB::STAR)
+          else
+            query << escape_and_join(@table_name, SQB::STAR)
+          end
         else
           query << @columns.join(', ')
         end
 
         query << "FROM"
         query << escape_and_join(@options[:database_name], @table_name)
+        if @table_name.is_a?(SQB::Select)
+          query << "AS subQuery"
+        end
 
         if @index_hints && !@index_hints.empty?
           query << 'USE INDEX (' + @index_hints.join(', ') + ')'

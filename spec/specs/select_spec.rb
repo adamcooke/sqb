@@ -16,8 +16,14 @@ describe SQB::Select do
   end
 
   it "should work with Query for backwards compatibility" do
-    query = SQB::Query.new(:posts)
+    query = SQB::Select.new(:posts)
     expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts`'
+  end
+
+  it 'should be able to query another query' do
+    query1 = SQB::Select.new(:posts)
+    query2 = SQB::Select.new(query1)
+    expect(query2.to_sql).to eq "SELECT `subQuery`.* FROM (SELECT `posts`.* FROM `posts`) AS subQuery"
   end
 
 end
