@@ -138,6 +138,10 @@ query.join(:users, [:id, :author_id], :name => :author, :type => :left)
 # This will join users where the user `id` matches the `author_id` in the base table
 query.join(:users, [:id, :author_id], :name => :author)
 
+# You can specifiy a source table when joining multiple tables together
+query.join(:comments, [:post_id, :id], type: :left, name: :com)
+query.join(:replies, [:comment_id, :id], type: :left, name: :reps, source_table_name: :com)
+
 # You can add additional join conditions like so. The additional conditions will be
 # added to the `ON` part of the join along with the key join.
 query.join(:comments, :post_id, :conditions => {:spam => true})
