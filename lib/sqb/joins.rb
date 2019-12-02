@@ -49,8 +49,14 @@ module SQB
         query << escape(join_name)
         query << "ON"
 
+        if options[:source_table_name]
+          table_name = options[:source_table_name].to_s
+        else
+          table_name = @table_name
+        end
+
         join_where = {}
-        join_where[{@table_name => local_key}] = SQB.safe(escape_and_join(join_name, foreign_key))
+        join_where[{table_name => local_key}] = SQB.safe(escape_and_join(join_name, foreign_key))
         if options[:conditions]
           options[:conditions].each do |(column, value)|
             join_where[{join_name => column}] = value

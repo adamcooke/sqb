@@ -52,6 +52,12 @@ describe SQB::Select do
       expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` RIGHT OUTER JOIN `users` AS `users` ON (`posts`.`author_id` = `users`.`id`)"
     end
 
+    it 'should be able to join a a custom table' do
+      query.join(:comments, [:post_id, :id], type: :left, name: :com)
+      query.join(:replies, [:comment_id, :id], type: :left, name: :reps, source_table_name: :com)
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` LEFT OUTER JOIN `comments` AS `com` ON (`posts`.`id` = `com`.`post_id`) LEFT OUTER JOIN `replies` AS `reps` ON (`com`.`id` = `reps`.`comment_id`)"    
+    end
+
     it 'should raise an error if you provide an invalid join type' do
       expect do
         query.join(:users, [:id, :author_id], :name => :users, :type => :invalid)
