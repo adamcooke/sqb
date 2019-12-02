@@ -59,6 +59,11 @@ module SQB
         # If a safe string is provided as a column name, we'll
         # always use this even if a table name is provided too.
         parts.last
+      elsif parts.last.is_a?(SQB::Select)
+        parts.last.prepared_arguments.each do |arg|
+          @prepared_arguments << arg
+        end
+        "(#{parts.last.to_sql})"
       else
         parts.compact.map { |part| escape(part) }.join('.')
       end

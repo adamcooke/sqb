@@ -21,12 +21,12 @@ describe SQB::Select do
 
   it "should escape function names" do
     query.column(:id, :function => "FUNC!WITHINVALID*CHARS")
-    expect(query.to_sql).to eq "SELECT FUNCWITHINVALIDCHARS( `posts`.`id` ) FROM `posts`"
+    expect(query.to_sql).to eq "SELECT FUNCWITHINVALIDCHARS(`posts`.`id`) FROM `posts`"
   end
 
   it "should not escape safe strings as function names" do
     query.column(:id, :function => SQB.safe("FUNC!SAFE"))
-    expect(query.to_sql).to eq "SELECT FUNC!SAFE( `posts`.`id` ) FROM `posts`"
+    expect(query.to_sql).to eq "SELECT FUNC!SAFE(`posts`.`id`) FROM `posts`"
   end
 
   it "should escape true as 1" do

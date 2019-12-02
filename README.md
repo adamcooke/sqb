@@ -62,9 +62,9 @@ query.where(:author_id => {:not_in => [1,2,3,4]})
 query.where(:markdown => nil)
 query.where(:markdown => {:not_equal => nil})
 
-# Sub-queries
+# Sub-queries in where queries
 other_query = SQB::Select.new(:comments)
-other_query.where(post_id: SQB.safe("posts.id"))
+other_query.where(post_id: SQB.column(:posts => :id))
 other_query.select(:count, :function => 'COUNT')
 query.where(other_query => {:greater_than => 10})
 ```
@@ -85,6 +85,15 @@ By default, all the columns on your main table will be selected with a `*` howev
 ```ruby
 query.column(:title)
 query.column(:id, :function => 'COUNT', :as => 'count')
+
+# You can do more complex function operations
+query.column(:amount, :function => SQB.safe('IFNULL(SUM($$), 0.0))', :as => 'total')
+
+# Subqueries can be used in columns too
+other_query = SQB::Select.new(:comments)
+other_query.where(post_id: SQB.column(:posts => :id))
+other_query.select(:count, :function => 'COUNT')
+query.column(other_query, :as => :comments_count)
 
 # If you have already added columns and wish to replace them all with a new one
 query.column!(:other_column)

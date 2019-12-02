@@ -11,18 +11,22 @@ module SQB
       @columns ||= []
       with_table_and_column(column) do |table, column|
         @columns << [].tap do |query|
-          if options[:function]
+          if options[:function].is_a?(SQB::SafeString) && options[:function] =~ /\A(\w+)\((.*)\)\z/i
+            query << options[:function].gsub('$$', escape_and_join(table, column))
+          elsif options[:function]
             query << "#{escape_function(options[:function])}("
-          end
-          query << escape_and_join(table, column)
-          if options[:function]
+            query << escape_and_join(table, column)
             query << ")"
+          else
+            query << escape_and_join(table, column)
           end
+
+
           if options[:as]
-            query << "AS"
+            query << " AS "
             query << escape(options[:as])
           end
-        end.join(' ')
+        end.join
       end
       self
     end
