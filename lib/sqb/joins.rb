@@ -28,14 +28,17 @@ module SQB
 
       @joins ||= []
       @joins_name_mapping ||= {}
+      @join_names ||= []
 
       if options[:name]
         join_name = options[:name]
       else
         @joins_name_mapping[table_name] ||= 0
-        join_name= "#{table_name}_#{@joins_name_mapping[table_name]}"
+        join_name = "#{table_name}_#{@joins_name_mapping[table_name]}"
         @joins_name_mapping[table_name] += 1
       end
+
+      @join_names << join_name.to_sym
 
       @joins << [].tap do |query|
         if type == :inner
@@ -79,6 +82,12 @@ module SQB
       end
 
       self
+    end
+
+    def has_join?(name)
+      return false unless @join_names.is_a?(Array)
+
+      @join_names.include?(name.to_sym)
     end
 
   end

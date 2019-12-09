@@ -60,6 +60,18 @@ describe SQB::Select do
       end
     end
 
+    it 'should be able to tell us if a join has been added' do
+      expect(query.has_join?(:users)).to be false
+      query.join(:users, :author_id, :name => :users)
+      expect(query.has_join?(:users)).to be true
+    end
+
+    it 'should be able to tell us if a join has been added when it has no name' do
+      expect(query.has_join?(:users_0)).to be false
+      query.join(:users, :author_id)
+      expect(query.has_join?(:users_0)).to be true
+    end
+
   end
 
 end
