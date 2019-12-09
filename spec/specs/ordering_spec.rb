@@ -55,6 +55,13 @@ describe SQB::Select do
       end
     end
 
+    it 'should allow ordering when used with a sub query' do
+      sq = SQB::Select.new(:vegetables)
+      query = SQB::Select.new(sq)
+      query.order(:name)
+      expect(query.to_sql).to eq "SELECT `subQuery`.* FROM (SELECT `vegetables`.* FROM `vegetables`) AS subQuery ORDER BY `subQuery`.`name` ASC"
+    end
+
   end
 
 end

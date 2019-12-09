@@ -50,7 +50,11 @@ module SQB
           raise QueryError, "Column names provided as a hash must only contain a single item"
         end
       else
-        block.call(@table_name, input)
+        if @table_name.is_a?(SQB::Select)
+          block.call('subQuery', input)
+        else
+          block.call(@table_name, input)
+        end
       end
     end
 
