@@ -171,6 +171,11 @@ describe SQB::Select do
           end.to raise_error(SQB::QueryError)
         end
       end
+
+      it 'should not allow an empty where query' do
+        query.or {}
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts`"
+      end
     end
 
     context "and" do
@@ -207,6 +212,11 @@ describe SQB::Select do
             end
           end.to raise_error(SQB::QueryError)
         end
+      end
+
+      it 'should not allow an empty where query' do
+        query.and {}
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts`"
       end
     end
 

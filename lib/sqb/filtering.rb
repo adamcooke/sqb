@@ -54,6 +54,7 @@ module SQB
       # Start by making an array within the OR block for this calling
       @where_within_or << []
 
+
       # Execute the block. All queries to 'where' will be added to the last
       # array in the chain (created above)
       block.call
@@ -67,16 +68,21 @@ module SQB
       # After each OR call, store up the SQL fragment for all where queries
       # executed within the block.
       if w = @where_within_or.pop
-        @where_within_or_sql << w.map do |w|
-          hash_to_sql(w)
-        end.join(" #{joiner} ")
+        unless w.empty?
+          @where_within_or_sql << w.map do |w|
+            hash_to_sql(w)
+          end.join(" #{joiner} ")
+        end
       end
 
       # When there are no fragments in the chain left, add it to the main
       # where chain for the query.
       if @where_within_or.empty?
         @where ||= []
-        @where << "(#{@where_within_or_sql.flatten.join(" #{joiner} ")})"
+        components = @where_within_or_sql.flatten
+        unless components.empty?
+          @where << "(#{components.join(" #{joiner} ")})"
+        end
         @where_within_or_sql = nil
         @where_within_or = nil
       end
