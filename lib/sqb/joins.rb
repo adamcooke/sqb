@@ -6,17 +6,21 @@ module SQB
     # Add a join
     #
     # @param table_name [String, Symbol]
-    # @param foreign_key [String, Symbol]
+    # @param foreign_key [String, Symbol, Array]
     # @option options [Hash] :where
     # @option options [Array] :select
     # @return [Query]
     def join(table_name, foreign_key, options = {})
 
       if foreign_key.is_a?(Array)
-        local_key = foreign_key[1]
+        if foreign_key[1].is_a?(Hash)
+          local_key = foreign_key[1]
+        else
+          local_key = {@table_name => foreign_key[1]}
+        end
         foreign_key = foreign_key[0]
       else
-        local_key = "id"
+        local_key = {@table_name => "id"}
         foreign_key = foreign_key.to_s
       end
 
@@ -53,7 +57,7 @@ module SQB
         query << "ON"
 
         join_where = {}
-        join_where[{@table_name => local_key}] = SQB.safe(escape_and_join(join_name, foreign_key))
+        join_where[local_key] = SQB.safe(escape_and_join(join_name, foreign_key))
         if options[:conditions]
           options[:conditions].each do |(column, value)|
             join_where[{join_name => column}] = value

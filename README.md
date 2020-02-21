@@ -147,6 +147,9 @@ query.join(:users, [:id, :author_id], :name => :author, :type => :left)
 # This will join users where the user `id` matches the `author_id` in the base table
 query.join(:users, [:id, :author_id], :name => :author)
 
+# This will join to a different join rather than the base table
+query.join(:users, [:id, {user_joins: :user_id}])
+
 # You can add additional join conditions like so. The additional conditions will be
 # added to the `ON` part of the join along with the key join.
 query.join(:comments, :post_id, :conditions => {:spam => true})

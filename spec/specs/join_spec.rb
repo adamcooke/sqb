@@ -37,6 +37,12 @@ describe SQB::Select do
       expect(query.to_sql).to eq "SELECT `the_comments`.`content` AS `the_comments_content` FROM `posts` INNER JOIN `comments` AS `the_comments` ON (`posts`.`id` = `the_comments`.`post_id`)"
     end
 
+    it 'should be able to join with other joins' do
+      query.join(:user_joins, :post_id, :name => :user_joins, :conditions => {:active => true})
+      query.join(:users, [:id, {user_joins: :user_id}], :name => :users)
+      expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` INNER JOIN `user_joins` AS `user_joins` ON (`posts`.`id` = `user_joins`.`post_id` AND `user_joins`.`active` = 1) INNER JOIN `users` AS `users` ON (`user_joins`.`user_id` = `users`.`id`)"
+    end
+
     it 'should allow the local key to be provided too to allow joining to single items' do
       query.join(:users, [:id, :author_id], :name => :users)
       expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` INNER JOIN `users` AS `users` ON (`posts`.`author_id` = `users`.`id`)"
