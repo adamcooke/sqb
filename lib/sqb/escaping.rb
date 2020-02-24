@@ -1,13 +1,14 @@
+# frozen_string_literal: true
+
 module SQB
   module Escaping
-
     private
 
     def escape(name)
       if name.is_a?(SafeString)
         name
       elsif name == SQB::STAR
-        "*"
+        '*'
       else
         "`#{name.to_s.gsub('`', '``')}`"
       end
@@ -47,7 +48,7 @@ module SQB
         if input.size == 1
           block.call(input.first[0], input.first[1])
         else
-          raise QueryError, "Column names provided as a hash must only contain a single item"
+          raise QueryError, 'Column names provided as a hash must only contain a single item'
         end
       else
         if @table_name.is_a?(SQB::Select)
@@ -72,6 +73,5 @@ module SQB
         parts.compact.map { |part| escape(part) }.join('.')
       end
     end
-
   end
 end

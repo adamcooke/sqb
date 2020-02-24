@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module IndexHint
-
     def index_hint(index)
       @index_hints ||= []
       @index_hints << escape(index)
@@ -11,6 +12,5 @@ module SQB
       @index_hints = nil
       self
     end
-    
   end
 end

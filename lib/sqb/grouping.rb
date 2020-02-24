@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module Grouping
-
     # Add a grouping
     #
     # @param column [String, Symbol, Hash]
@@ -12,6 +13,5 @@ module SQB
       end
       self
     end
-
   end
 end

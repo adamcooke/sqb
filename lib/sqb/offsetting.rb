@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module Offsetting
-
     # Set the offset
     #
     # @param number [Integer]
@@ -9,6 +10,5 @@ module SQB
       @offset = number&.to_i
       self
     end
-
   end
 end

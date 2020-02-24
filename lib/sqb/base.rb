@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'sqb/error'
 require 'sqb/escaping'
 
 module SQB
   class Base
-
     include SQB::Escaping
 
     attr_reader :prepared_arguments
@@ -19,8 +20,6 @@ module SQB
     # Generate the full SQL query for this query.
     #
     # @return [String]
-    def to_sql
-    end
-
+    def to_sql; end
   end
 end

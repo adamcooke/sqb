@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module SQB
   module Ordering
-
-    VALID_ORDERS = ['ASC', 'DESC']
+    VALID_ORDERS = %w[ASC DESC].freeze
 
     # Add an order column
     #
@@ -34,6 +35,5 @@ module SQB
     def no_order!
       @orders = []
     end
-
   end
 end

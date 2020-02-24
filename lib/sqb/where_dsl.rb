@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   class WhereDSL
-
     attr_reader :hash
 
     def initialize
@@ -9,7 +10,7 @@ module SQB
 
     def method_missing(name, value = nil)
       if name =~ /(.*)\=\z/
-        attribute_name = $1
+        attribute_name = Regexp.last_match(1)
         @hash[attribute_name.to_sym] ||= {}
         @hash[attribute_name.to_sym][:equal] = value
       else
@@ -19,67 +20,63 @@ module SQB
     end
 
     class Attribute
-
       def initialize(attribute_name, hash)
         @attribute_name = attribute_name
         @hash = hash
       end
-
     end
 
     class PositiveAttribute < Attribute
       def =~(value)
         @hash[@attribute_name][:like] = value
       end
-      alias_method :like, :=~
+      alias like =~
 
       def <(value)
         @hash[@attribute_name][:less_than] = value
       end
-      alias_method :less_than, :<
+      alias less_than <
 
       def <=(value)
         @hash[@attribute_name][:less_than_or_equal_to] = value
       end
-      alias_method :less_than_or_equal_to, :<=
+      alias less_than_or_equal_to <=
 
       def >(value)
         @hash[@attribute_name][:greater_than] = value
       end
-      alias_method :greater_than, :>
+      alias greater_than >
 
       def >=(value)
         @hash[@attribute_name][:greater_than_or_equal_to] = value
       end
-      alias_method :greater_than_or_equal_to, :>=
+      alias greater_than_or_equal_to >=
 
       def includes(*values)
         @hash[@attribute_name][:in] = values
       end
-      alias_method :in, :includes
+      alias in includes
 
       def not
         NegativeAttribute.new(@attribute_name, @hash)
       end
-      alias_method :does_not, :not
+      alias does_not not
 
       def not=(value)
         @hash[@attribute_name][:not_equal] = value
       end
-
     end
 
     class NegativeAttribute < Attribute
       def =~(value)
         @hash[@attribute_name][:not_like] = value
       end
-      alias_method :like, :=~
+      alias like =~
 
       def includes(*values)
         @hash[@attribute_name][:not_in] = values
       end
-      alias_method :in, :includes
+      alias in includes
     end
-
   end
 end

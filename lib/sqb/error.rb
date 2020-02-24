@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SQB
   class Error < StandardError
   end

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module Columns
-
     # Add a column to the query
     #
     # @param column [String, Symbol, Hash] the column name (or a hash with table & column name)
@@ -16,14 +17,13 @@ module SQB
           elsif options[:function]
             query << "#{escape_function(options[:function])}("
             query << escape_and_join(table, column)
-            query << ")"
+            query << ')'
           else
             query << escape_and_join(table, column)
           end
 
-
           if options[:as]
-            query << " AS "
+            query << ' AS '
             query << escape(options[:as])
           end
         end.join
@@ -36,7 +36,5 @@ module SQB
       @columns = []
       column(*args)
     end
-
-
   end
 end

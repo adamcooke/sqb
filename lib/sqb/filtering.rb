@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'sqb/where_dsl'
 require 'sqb/assignments'
 require 'sqb/fragment'
 
 module SQB
   module Filtering
-
     include Assignments
 
     # Add a condition to the query by providing a hash of keys and values.
@@ -24,7 +25,7 @@ module SQB
         block.call(dsl)
         where(dsl.hash)
       else
-        raise QueryError, "Must provide a hash or a block to `where`"
+        raise QueryError, 'Must provide a hash or a block to `where`'
       end
       self
     end
@@ -83,16 +84,15 @@ module SQB
         unless all_fragments_where.empty?
           @where ||= []
           sql = all_fragments_where.join(" #{current_fragment.joiner} ")
-          if all_fragments_where.size == 1
-            @where << sql
-          else
-            @where << "(#{sql})"
-          end
+          @where << if all_fragments_where.size == 1
+                      sql
+                    else
+                      "(#{sql})"
+                    end
         end
 
         @fragments = nil
       end
     end
-
   end
 end

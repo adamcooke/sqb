@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sqb/base'
 require 'sqb/distinct'
 require 'sqb/columns'
@@ -11,7 +13,6 @@ require 'sqb/index_hint'
 
 module SQB
   class Select < Base
-
     include SQB::Distinct
     include SQB::Columns
     include SQB::Filtering
@@ -24,56 +25,47 @@ module SQB
 
     def to_sql
       [].tap do |query|
-        query << "SELECT"
-        query << "DISTINCT" if @distinct
-        if @columns.nil? || @columns.empty?
-          if @table_name.is_a?(SQB::Select)
-            query << escape_and_join('subQuery', SQB::STAR)
-          else
-            query << escape_and_join(@table_name, SQB::STAR)
-          end
-        else
-          query << @columns.join(', ')
-        end
+        query << 'SELECT'
+        query << 'DISTINCT' if @distinct
+        query << if @columns.nil? || @columns.empty?
+                   if @table_name.is_a?(SQB::Select)
+                     escape_and_join('subQuery', SQB::STAR)
+                   else
+                     escape_and_join(@table_name, SQB::STAR)
+                            end
+                 else
+                   @columns.join(', ')
+                 end
 
-        query << "FROM"
+        query << 'FROM'
         query << escape_and_join(@options[:database_name], @table_name)
-        if @table_name.is_a?(SQB::Select)
-          query << "AS subQuery"
-        end
+        query << 'AS subQuery' if @table_name.is_a?(SQB::Select)
 
         if @index_hints && !@index_hints.empty?
           query << 'USE INDEX (' + @index_hints.join(', ') + ')'
         end
 
-        if @joins && !@joins.empty?
-          query << @joins.join(' ')
-        end
+        query << @joins.join(' ') if @joins && !@joins.empty?
 
         if @where && !@where.empty?
-          query << "WHERE"
+          query << 'WHERE'
           query << @where.join(' AND ')
         end
 
         if @groups && !@groups.empty?
-          query << "GROUP BY"
+          query << 'GROUP BY'
           query << @groups.join(', ')
         end
 
         if @orders && !@orders.empty?
-          query << "ORDER BY"
+          query << 'ORDER BY'
           query << @orders.join(', ')
         end
 
-        if @limit
-          query << "LIMIT #{@limit.to_i}"
-        end
+        query << "LIMIT #{@limit.to_i}" if @limit
 
-        if @offset
-          query << "OFFSET #{@offset.to_i}"
-        end
+        query << "OFFSET #{@offset.to_i}" if @offset
       end.join(' ')
     end
-
   end
 end

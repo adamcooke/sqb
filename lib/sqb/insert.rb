@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 require 'sqb/base'
 
 module SQB
   class Insert < Base
-
     def to_sql
       [].tap do |query|
-        values_sql = values.map { |rec| "(" + rec.join(', ') + ")" }.join(', ')
+        values_sql = values.map { |rec| '(' + rec.join(', ') + ')' }.join(', ')
         query << "#{mysql_verb} INTO"
         query << escape_and_join(@options[:database_name], @table_name)
         if values_sql.empty?
-          raise NoValuesError, "No values have been specified. Use `value` to add values to the query."
+          raise NoValuesError, 'No values have been specified. Use `value` to add values to the query.'
         end
+
         query << "(#{columns.join(', ')})"
-        query << "VALUES"
+        query << 'VALUES'
         query << values_sql
       end.join(' ')
     end
@@ -22,11 +24,11 @@ module SQB
     # @param key [String]
     # @param value [String, nil]
     def value(hash)
-      if @record.nil?
-        record = (@local_record ||= {})
-      else
-        record = @record
-      end
+      record = if @record.nil?
+                 (@local_record ||= {})
+               else
+                 @record
+               end
 
       hash.each do |key, value|
         record[key] = value
@@ -34,7 +36,7 @@ module SQB
 
       self
     end
-    alias_method :values, :value
+    alias values value
 
     def record(&block)
       @record = {}
@@ -67,8 +69,7 @@ module SQB
     end
 
     def mysql_verb
-      "INSERT"
+      'INSERT'
     end
-
   end
 end

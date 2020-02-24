@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module Assignments
-
     private
 
     def hash_to_sql(hash, joiner = ' AND ')
@@ -14,7 +15,7 @@ module SQB
             sql = value.map do |operator, value|
               condition(key, operator, value)
             end
-            sql.empty? ? "1=0" : sql.join(joiner)
+            sql.empty? ? '1=0' : sql.join(joiner)
           else
             condition(key, :equal, value)
           end
@@ -49,9 +50,9 @@ module SQB
         escaped_values = value.map { |v| value_escape(v) }.join(', ')
         if escaped_values.empty?
           # If there are no values to search from, don't find anything
-          "1=0"
+          '1=0'
         else
-          op = operator == :in ? "IN" : "NOT IN"
+          op = operator == :in ? 'IN' : 'NOT IN'
           "#{key} #{op} (#{escaped_values})"
         end
       when :like
@@ -62,6 +63,5 @@ module SQB
         raise InvalidOperatorError, "Invalid operator '#{operator}'"
       end
     end
-
   end
 end

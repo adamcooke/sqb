@@ -1,38 +1,35 @@
+# frozen_string_literal: true
+
 require 'sqb/base'
 require 'sqb/filtering'
 require 'sqb/limiting'
 
 module SQB
   class Update < Base
-
     include SQB::Filtering
     include SQB::Limiting
 
     def to_sql
       [].tap do |query|
-        query << "UPDATE"
+        query << 'UPDATE'
         query << escape_and_join(@options[:database_name], @table_name)
-        query << "SET"
+        query << 'SET'
         if @sets && !@sets.empty?
           query << @sets.map do |key, value|
             "#{escape_and_join(@table_name, key)} = #{value}"
           end.join(', ')
         else
-          raise NoValuesError, "No values have been updated. Use `set` to set the values to update."
+          raise NoValuesError, 'No values have been updated. Use `set` to set the values to update.'
         end
 
         if @where && !@where.empty?
-          query << "WHERE"
+          query << 'WHERE'
           query << @where.join(' AND ')
         end
 
-        if @limit
-          query << "LIMIT #{@limit.to_i}"
-        end
+        query << "LIMIT #{@limit.to_i}" if @limit
 
-        if @offset
-          query << "OFFSET #{@offset.to_i}"
-        end
+        query << "OFFSET #{@offset.to_i}" if @offset
       end.join(' ')
     end
 
@@ -42,7 +39,7 @@ module SQB
     # @param value [String, nil]
     def set(hash)
       if @where
-        raise QueryError, "Filtering has already been provided. Must filter after setting values."
+        raise QueryError, 'Filtering has already been provided. Must filter after setting values.'
       end
 
       @sets ||= {}
@@ -51,6 +48,5 @@ module SQB
       end
       self
     end
-
   end
 end

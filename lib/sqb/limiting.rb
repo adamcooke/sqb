@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module SQB
   module Limiting
-
     # Limit the number of records return
     #
     # @param number [Integer]
@@ -9,6 +10,5 @@ module SQB
       @limit = number&.to_i
       self
     end
-
   end
 end

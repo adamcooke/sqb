@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sqb/version'
 require 'sqb/safe_string'
 require 'sqb/escaping'
@@ -10,7 +12,6 @@ require 'sqb/insert'
 require 'sqb/replace'
 
 module SQB
-
   extend SQB::Escaping
 
   STAR = Object.new
@@ -24,5 +25,4 @@ module SQB
       safe(escape_and_join(table, column))
     end
   end
-
 end

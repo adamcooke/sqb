@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'sqb/assignments'
 require 'sqb/escaping'
 
 module SQB
   class Fragment
-
     include Escaping
     include Assignments
 
