@@ -8,9 +8,10 @@ module SQB
     include Escaping
     include Assignments
 
-    def initialize(table_name, joiner)
+    def initialize(table_name, joiner, options = {})
       @joiner = joiner
       @table_name = table_name
+      @options = options
       @prepared_arguments = []
       @items = []
     end

@@ -50,7 +50,7 @@ module SQB
       @fragments ||= {}
 
       # Create a new fragment object
-      current_fragment = Fragment.new(@table_name, joiner)
+      current_fragment = Fragment.new(@table_name, joiner, @options)
 
       # Store the fragment that was active when this fragment
       # was created (when this fragment ends this will revert

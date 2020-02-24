@@ -255,6 +255,19 @@ describe SQB::Select do
         query.where({ 'table`name' => 'title' } => 'Hello')
         expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` WHERE (`table``name`.`title` = ?)'
       end
+
+      it 'should use an escaper for values if defined' do
+        query = SQB::Select.new(:posts, escaper: proc { |s| "\"#{s}\"" })
+        query.where(title: 'Hello')
+        expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = "Hello")'
+
+        query.or do
+          query.where(title: 'World')
+          query.where(title: 'Carrot')
+        end
+
+        expect(query.to_sql).to eq 'SELECT `posts`.* FROM `posts` WHERE (`posts`.`title` = "Hello") AND ((`posts`.`title` = "World") OR (`posts`.`title` = "Carrot"))'
+      end
     end
 
     context 'with a block' do
