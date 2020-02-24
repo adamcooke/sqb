@@ -1,5 +1,6 @@
 require 'sqb/where_dsl'
 require 'sqb/assignments'
+require 'sqb/fragment'
 
 module SQB
   module Filtering
@@ -12,8 +13,8 @@ module SQB
     # @return [Query]
     def where(hash = nil, &block)
       if hash
-        if @where_within_or && @where_within_or.last
-          @where_within_or.last << hash
+        if @active_fragment
+          @active_fragment.add_item(hash || block)
         else
           @where ||= []
           @where << hash_to_sql(hash)
@@ -44,49 +45,53 @@ module SQB
     private
 
     def select_fragment(joiner, &block)
-      if @where_within_or.is_a?(Array)
-        @no_ensure = true
-        raise QueryError, "Cannot nest an or block within another or block"
-      end
+      # We're storing all fragments that are added
+      @fragments ||= {}
 
-      @where_within_or ||= []
+      # Create a new fragment object
+      current_fragment = Fragment.new(@table_name, joiner)
 
-      # Start by making an array within the OR block for this calling
-      @where_within_or << []
+      # Store the fragment that was active when this fragment
+      # was created (when this fragment ends this will revert
+      # to being the active fragment)
+      @fragments[current_fragment] = @active_fragment
 
+      # Set the active fragment, this is the fragment that where queries
+      # will be added to
+      @active_fragment = current_fragment
 
-      # Execute the block. All queries to 'where' will be added to the last
-      # array in the chain (created above)
-      block.call
-
+      # Yield the block
+      yield block
     ensure
-      return if @no_ensure
+      # Set the active fragment back to the fragment that existed
+      # before this fragment was created.
+      @active_fragment = @fragments[current_fragment]
 
-      # Start work on a full array of SQL fragments for all OR queries
-      @where_within_or_sql ||= []
+      # When we're done with all fragments (i.e. the active fragment is
+      # nil) we will add all queries into the root query.
+      if @active_fragment.nil?
+        all_fragments_where = []
+        @fragments.keys.each do |fragment|
+          next if fragment.empty?
 
-      # After each OR call, store up the SQL fragment for all where queries
-      # executed within the block.
-      if w = @where_within_or.pop
-        unless w.empty?
-          @where_within_or_sql << w.map do |w|
-            hash_to_sql(w)
-          end.join(" #{joiner} ")
+          all_fragments_where << fragment.to_sql
+          fragment.prepared_arguments.each do |arg|
+            @prepared_arguments << arg
+          end
         end
-      end
 
-      # When there are no fragments in the chain left, add it to the main
-      # where chain for the query.
-      if @where_within_or.empty?
-        @where ||= []
-        components = @where_within_or_sql.flatten
-        unless components.empty?
-          @where << "(#{components.join(" #{joiner} ")})"
+        unless all_fragments_where.empty?
+          @where ||= []
+          sql = all_fragments_where.join(" #{current_fragment.joiner} ")
+          if all_fragments_where.size == 1
+            @where << sql
+          else
+            @where << "(#{sql})"
+          end
         end
-        @where_within_or_sql = nil
-        @where_within_or = nil
+
+        @fragments = nil
       end
-      self
     end
 
   end

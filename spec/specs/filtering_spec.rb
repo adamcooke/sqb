@@ -160,16 +160,31 @@ describe SQB::Select do
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) OR (`posts`.`title` = ?)) AND ((`posts`.`title` = ?) OR (`posts`.`title` = ?))"
       end
 
-      it "should raise an error with nested ors" do
+      it "should handle nested or blocks" do
         query.or do
           query.where(:title => "Hello")
-          query.where(:title => "World")
-          expect do
-            query.or do
-              query.where(:title => "Banana")
-            end
-          end.to raise_error(SQB::QueryError)
+          query.where(:sub_title => "World")
+
+          query.or do
+            query.where(:shape => "Banana")
+            query.where(:colour => "Another Banana")
+          end
+
+          query.and do
+            query.where(:author => 'Dave')
+            query.where(:isbn => '12345')
+          end
+
+          query.where(:page_count => 'Potato')
         end
+
+        expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE (((`posts`.`title` = ?) OR (`posts`.`sub_title` = ?) OR (`posts`.`page_count` = ?)) OR ((`posts`.`shape` = ?) OR (`posts`.`colour` = ?)) OR ((`posts`.`author` = ?) AND (`posts`.`isbn` = ?)))"
+
+        expect(query.prepared_arguments[0]).to eq 'Hello'
+        expect(query.prepared_arguments[1]).to eq 'World'
+        expect(query.prepared_arguments[2]).to eq 'Potato'
+        expect(query.prepared_arguments[3]).to eq 'Banana'
+        expect(query.prepared_arguments[4]).to eq 'Another Banana'
       end
 
       it 'should not allow an empty where query' do
@@ -199,19 +214,6 @@ describe SQB::Select do
         end
 
         expect(query.to_sql).to eq "SELECT `posts`.* FROM `posts` WHERE ((`posts`.`title` = ?) AND (`posts`.`title` = ?)) AND ((`posts`.`title` = ?) AND (`posts`.`title` = ?))"
-      end
-
-
-      it "should raise an error with nested ands" do
-        query.and do
-          query.where(:title => "Hello")
-          query.where(:title => "World")
-          expect do
-            query.and do
-              query.where(:title => "Banana")
-            end
-          end.to raise_error(SQB::QueryError)
-        end
       end
 
       it 'should not allow an empty where query' do
